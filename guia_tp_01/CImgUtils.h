@@ -3,6 +3,7 @@
 #include <cmath> // fabs
 #include <vector>
 #include "CImg.h"
+#include "TjfLogger.h"
 
 class CImgUtils{
 
@@ -56,6 +57,17 @@ public:
 			}
 		}
 		agregarPunto(x, y, puntos); // punto final
+	}
+
+	/*Retorna un unsigned char entre /param min y /param max
+	Ojo que no chequea que max > min*/
+	static inline unsigned char generateRandomChar(unsigned char min, unsigned char max) {
+		unsigned char valr = min + rand() % (max - min);
+#ifdef _DEBUG
+		unsigned v(valr);
+		TjfLogger::getInstance().log(v);
+#endif
+		return valr;
 	}
 
 };

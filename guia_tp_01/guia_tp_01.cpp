@@ -125,10 +125,25 @@ void ejercicio_3() {
 		ventana.wait();
 	}
 }
+
+/*
+Generar matriz de 256x256 y llenarla de valores aleatorios entre 0 y 255. Visualizar.
+*/
+void ejercicio_4() {
+	CImg<unsigned char> matriz(256, 256, 1, 1, 0); // imagen de 256x256x1 llena de 0.
+	CImgDisplay display;
+	cimg_forXY(matriz, x, y){
+		matriz(x, y) = CImgUtils::generateRandomChar(0, 255);
+	}
+	display.display(matriz);
+	while (!display.is_closed()) {}
+}
+
 int _tmain(int argc, _TCHAR* argv[])
 {
 	//ejercicio_1();
 	//ejercicio_2();
-	ejercicio_3();
+	//ejercicio_3();
+	ejercicio_4();
 	return 0;
 }
