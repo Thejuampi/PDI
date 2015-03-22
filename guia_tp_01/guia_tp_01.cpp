@@ -190,7 +190,7 @@ void ejercicio_4() {
 	//while (!display.is_closed()) { display.wait(); }
 	CImgUtils::waitForWindow(display); 
 
-	int width = 400, height = 400, circleRadius = 100;
+	unsigned int width = 400, height = 400, circleRadius = 100;
 	CImg<unsigned char> &blackBackGroundWhiteCircle = CImgUtils::drawCircle(width, height, circleRadius);
 	display.set_title("Item 4");
 	display.resize(blackBackGroundWhiteCircle);
@@ -199,16 +199,43 @@ void ejercicio_4() {
 	//CImgUtils::waitForWindow(display);
 	while (!display.is_closed()) {
 		if (display.is_keyARROWRIGHT()){ //increases width
-			//TODO
+			++width;// = (width + 1)/* % 640*/; //ojo que puede da overflow
+			CImg<unsigned char> &resized = CImgUtils::drawCircle(width, height, circleRadius);
+			display.resize(resized);
+			display.display(resized);
 		}
 		else if (display.is_keyARROWLEFT()) { // decreases width
-			//TODO
+			--width;// = width - 1; // no llegar a 0.
+			CImg<unsigned char> &resized = CImgUtils::drawCircle(width, height, circleRadius);
+			display.resize(resized);
+			display.display(resized);
 		}
 		else if (display.is_keyARROWUP()){ //increases height
-			//TODO
+			--height;
+			CImg<unsigned char> &resized = CImgUtils::drawCircle(width, height, circleRadius);
+			display.resize(resized);
+			display.display(resized);
 		}
 		else if (display.is_keyARROWDOWN()){ //decreases height
-			//TODO
+			++height;
+			CImg<unsigned char> &resized = CImgUtils::drawCircle(width, height, circleRadius);
+			display.resize(resized);
+			display.display(resized);
+		}
+		else if (display.is_keyPADADD()){ //increases circle radius
+			++circleRadius;
+			CImg<unsigned char> &resized = CImgUtils::drawCircle(width, height, circleRadius);
+			display.resize(resized);
+			display.display(resized);
+		}
+		else if (display.is_keyPADSUB()){ //decreases circle radius
+			--circleRadius;
+			CImg<unsigned char> &resized = CImgUtils::drawCircle(width, height, circleRadius);
+			display.resize(resized);
+			display.display(resized);
+		}
+		else {
+			display.wait();
 		}
 	}
 }
