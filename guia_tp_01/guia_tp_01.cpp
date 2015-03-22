@@ -82,7 +82,7 @@ void ejercicio_3() {
 		else if (ventana.button() & 2) {// click derecho
 			float color[] = { 255.0f };
 			CImg<float> display_img(600, 600, 1, 1, 0);
-			CImgDisplay display(display_img, "Perfil de Intensidad");
+			CImgDisplay display(display_img, "Perfil de Intensidad", 0, false, true); // para que inicie cerrada.
 			if (modo == 0){ // fila
 				int image_width = imagen.width();
 				display_img.draw_graph(imagen.get_crop(0, y, image_width, y), color, 1.0f, 1, 1, 0, 255, 0);
@@ -105,15 +105,18 @@ void ejercicio_3() {
 				int y2 = ventana.mouse_y();
 				CImgUtils::lineaBresenham(x1, y1, x2, y2, puntos); //algoritmo de Nestor
 				std::vector<std::pair<int, int>>::iterator pointIterator = puntos.begin();
+				int x = 0;
 				while (pointIterator != puntos.end()){
-					int x = 0;
 					std::pair<int, int> &point = *pointIterator++;
 					display_img(x++, 0) = imagen(point.first, point.second);
 				}
-				display_img.draw_graph(display_img, color, 1.0f, 1, 1, 0, 255);
+				//display_img = display_img.crop(0, x);
+				//display_img.save_ascii("intensidadSobreLinea.txt");
+				display_img.draw_graph(display_img, color, 1.0f, 1, 1, 0, 0);
 				display_img.display(display);
 			}
 			ventana.set_button();
+			display.show();
 			while (!display.is_closed()){}
 		}
 		else if ( ventana.button() & 4 || ventana.is_keyPADADD() ) {// click del medio o boton '+'
