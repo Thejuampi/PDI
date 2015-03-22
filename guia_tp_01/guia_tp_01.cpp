@@ -240,11 +240,39 @@ void ejercicio_4() {
 	}
 }
 
+void ejercicio_5(){
+	CImg<unsigned char> rmn("img/rmn.jpg");
+	CImgList<unsigned char> subsamplingList;
+	subsamplingList.push_back(rmn);
+	int width = rmn.width();
+	int heigth = rmn.height();
+	while (width > 1 && heigth > 1){
+		CImg<unsigned char> &subsampled = CImgUtils::subSampleBy2(subsamplingList.back());
+		//subsampled.resize(rmn.width(), rmn.height());
+		subsamplingList.push_back(subsampled);
+		width = subsampled.width();
+		heigth = subsampled.height();
+	}
+
+	auto iterator = subsamplingList.begin();
+	while (iterator != subsamplingList.end()){
+		auto &imagen = *iterator++;
+		imagen.resize(rmn.width(), rmn.height());
+	}
+
+	CImgDisplay display;
+	display.display(subsamplingList);
+	
+	CImgUtils::waitForWindow(display);
+
+}
+
 int _tmain(int argc, _TCHAR* argv[])
 {
 	//ejercicio_1();
 	//ejercicio_2();
 	//ejercicio_3();
-	ejercicio_4();
+	//ejercicio_4();
+	ejercicio_5();
 	return 0;
 }

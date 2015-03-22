@@ -89,4 +89,14 @@ public:
 		return image;
 	}
 
+	template <class T = unsigned char> static cimg_library::CImg<T> subSampleBy2(cimg_library::CImg<T> &image ) {
+		cimg_library::CImg<T> subsampled(image.width()/2, image.height()/2, image.depth(), image.spectrum(), 0);
+		for (int x = 0; x < image.width(); x += 2){
+			for (int y = 0; y < image.height(); y += 2){
+				subsampled(x/2, y/2) = image(x, y);
+			}
+		}
+		return subsampled;
+	}
+
 };
