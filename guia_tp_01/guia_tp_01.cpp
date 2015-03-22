@@ -267,12 +267,34 @@ void ejercicio_5(){
 
 }
 
+void ejercicio_6(){
+	CImg<unsigned char> huang2("img/huang2.jpg");
+	CImgList<unsigned char> huangs;
+	huangs.push_back(huang2);
+	int quantize = 8;
+	huangs.push_back(huang2.get_quantize(quantize--));
+	huangs.push_back(huang2.get_quantize(quantize--));
+	huangs.push_back(huang2.get_quantize(quantize--));
+	huangs.push_back(huang2.get_quantize(quantize--));
+	huangs.push_back(huang2.get_quantize(quantize--));
+	huangs.push_back(huang2.get_quantize(quantize--));
+	huangs.push_back(huang2.get_quantize(quantize--));
+	huangs.push_back(huang2.get_quantize(quantize--));
+	
+	CImgDisplay display;
+	display.display(huangs);
+	CImgUtils::waitForWindow(display);
+}
+
+
+
 int _tmain(int argc, _TCHAR* argv[])
 {
 	//ejercicio_1();
 	//ejercicio_2();
 	//ejercicio_3();
 	//ejercicio_4();
-	ejercicio_5();
+	//ejercicio_5();
+	ejercicio_6();
 	return 0;
 }
