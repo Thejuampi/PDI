@@ -12,6 +12,12 @@ private:
 protected:
 	static inline void agregarPunto(int x, int y, std::vector<std::pair<int, int>> &vector){
 		vector.push_back(std::pair<int, int>(x, y));
+#ifdef _DEBUG
+		static std::string callfrom = "agregarPunto()";
+		std::stringstream ss;
+		ss << "x=" << x << " y=" << y;
+		TjfLogger::getInstance().log(callfrom, ss.str());
+#endif
 	}
 
 public:
@@ -62,12 +68,18 @@ public:
 	/*Retorna un unsigned char entre /param min y /param max
 	Ojo que no chequea que max > min*/
 	static inline unsigned char generateRandomChar(unsigned char min, unsigned char max) {
+		//srand(time(NULL));
 		unsigned char valr = min + rand() % (max - min);
 #ifdef _DEBUG
+		static std::string callFrom = "generateRandomChar()";
 		unsigned v(valr);
-		TjfLogger::getInstance().log(v);
+		TjfLogger::getInstance().log(callFrom, v);
 #endif
 		return valr;
+	}
+
+	static inline void waitForWindow(cimg_library::CImgDisplay &imagen){
+		while (!imagen.is_closed()) { imagen.wait(); }
 	}
 
 };

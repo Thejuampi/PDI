@@ -40,10 +40,10 @@ public:
 		fileStream.close();
 	}
 
-	template <class T> void log(T &mensaje){
+	template <class T> void log(std::string &callFrom, T &mensaje){
 		std::string &currentDate = getCurrentDate();
-		fileStream << currentDate << " " << mensaje<<std::endl;
-		fileStream.flush();
+		fileStream << currentDate << " " << callFrom << " " << mensaje<<std::endl;
+		fileStream.flush(); //para que escriba enseguida
 	}
 
 };

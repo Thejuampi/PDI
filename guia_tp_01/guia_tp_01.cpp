@@ -73,7 +73,7 @@ void ejercicio_3() {
 			int y = ventana.mouse_y();
 		if (ventana.button() & 1){ //click izquierdo
 			if (x != -1 && y != -1){
-				int valor = imagen(x, y);
+				float valor = imagen(x, y);
 				std::stringstream ss;
 				ss << "x=" << x << " y=" << y << " valor= " << valor << "\n";
 				ventana.set_title(ss.str().c_str());
@@ -130,13 +130,63 @@ void ejercicio_3() {
 Generar matriz de 256x256 y llenarla de valores aleatorios entre 0 y 255. Visualizar.
 */
 void ejercicio_4() {
-	CImg<unsigned char> matriz(256, 256, 1, 1, 0); // imagen de 256x256x1 llena de 0.
+	CImg<unsigned char> matriz256x256(256, 256, 1, 1, 0); // imagen de 256x256x1 llena de 0.
 	CImgDisplay display;
-	cimg_forXY(matriz, x, y){
-		matriz(x, y) = CImgUtils::generateRandomChar(0, 255);
+
+	for (int x = 0; x < 256; ++x){
+		unsigned char valr = CImgUtils::generateRandomChar(0, 255);
+		for (int y = 0; y < 256; ++y){
+			matriz256x256(x, y) = valr;
+		}
 	}
-	display.display(matriz);
-	while (!display.is_closed()) {}
+	display.display(matriz256x256);
+	display.set_title("Item 1");
+	//while (!display.is_closed()) {}
+	CImgUtils::waitForWindow(display);
+
+	CImg<unsigned char> matriz100x100(100, 100, 1, 1, 0);
+	for (int x = 0; x < 100; ++x){
+		unsigned char valr = CImgUtils::generateRandomChar(0, 100);
+		for (int y = 0; y < 100; ++y){
+			matriz100x100(x, y) = valr;
+		}
+	}
+	display.display(matriz100x100);
+	display.set_title("Item 2");
+	display.show();
+	while (!display.is_closed()){
+		if (display.is_keyPADADD()){
+			for (int x = 0; x < 100; ++x){
+				for (int y = 0; y < 100; ++y){
+					matriz100x100(x, y) += 1;
+				}
+			}
+			display.display(matriz100x100);
+		}
+		else if (display.is_keyPADSUB()){
+			for (int x = 0; x < 100; ++x){
+				for (int y = 0; y < 100; ++y){
+					matriz100x100(x, y) -= 1;
+				}
+			}
+			display.display(matriz100x100);
+		}
+		else {
+		display.wait(); //para que no consuma recursos al pp
+		}
+	}
+
+	CImg<unsigned char> matriz100x100Binaria(100, 100, 1, 1,0);
+	for (int x = 0; x < matriz100x100Binaria.width(); x += 2){
+		for (int y = 0; y < matriz100x100Binaria.height(); y++){
+			matriz100x100Binaria(x, y) = 1;
+		}
+	}
+	display.set_title("Item 3");
+	display.display(matriz100x100Binaria);
+	display.show();
+	//while (!display.is_closed()) { display.wait(); }
+	CImgUtils::waitForWindow(display);
 }
 
 int _tmain(int argc, _TCHAR* argv[])
