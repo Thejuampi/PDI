@@ -82,4 +82,11 @@ public:
 		while (!imagen.is_closed()) { imagen.wait(); }
 	}
 
+	static cimg_library::CImg<unsigned char> drawCircle(int width, int height, int circleRadius){
+		cimg_library::CImg<unsigned char> image(width, height, 1, 1, 0);
+		unsigned char white[] = { 255 };
+		image.draw_circle(width/2, height/2, circleRadius, white);
+		return image;
+	}
+
 };

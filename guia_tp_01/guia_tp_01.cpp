@@ -151,6 +151,7 @@ void ejercicio_4() {
 			matriz100x100(x, y) = valr;
 		}
 	}
+	display.resize(matriz100x100);
 	display.display(matriz100x100);
 	display.set_title("Item 2");
 	display.show();
@@ -179,14 +180,37 @@ void ejercicio_4() {
 	CImg<unsigned char> matriz100x100Binaria(100, 100, 1, 1,0);
 	for (int x = 0; x < matriz100x100Binaria.width(); x += 2){
 		for (int y = 0; y < matriz100x100Binaria.height(); y++){
-			matriz100x100Binaria(x, y) = 1;
+			matriz100x100Binaria(x, y) = 255;
 		}
 	}
 	display.set_title("Item 3");
-	display.display(matriz100x100Binaria);
+	display.resize(matriz100x100Binaria);
+	display.display(matriz100x100Binaria); // se ve todo negro porque el rango va de 0 a 255 y la imagen tiene valores de 0 y 1
 	display.show();
 	//while (!display.is_closed()) { display.wait(); }
-	CImgUtils::waitForWindow(display);
+	CImgUtils::waitForWindow(display); 
+
+	int width = 400, height = 400, circleRadius = 100;
+	CImg<unsigned char> &blackBackGroundWhiteCircle = CImgUtils::drawCircle(width, height, circleRadius);
+	display.set_title("Item 4");
+	display.resize(blackBackGroundWhiteCircle);
+	display.display(blackBackGroundWhiteCircle);
+	display.show();
+	//CImgUtils::waitForWindow(display);
+	while (!display.is_closed()) {
+		if (display.is_keyARROWRIGHT()){ //increases width
+			//TODO
+		}
+		else if (display.is_keyARROWLEFT()) { // decreases width
+			//TODO
+		}
+		else if (display.is_keyARROWUP()){ //increases height
+			//TODO
+		}
+		else if (display.is_keyARROWDOWN()){ //decreases height
+			//TODO
+		}
+	}
 }
 
 int _tmain(int argc, _TCHAR* argv[])
