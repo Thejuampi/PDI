@@ -170,4 +170,36 @@ public:
 		return halfToned;
 
 	}
+
+	/*NO USAR*/
+	template <class T> cimg_library::CImg<T> brightness(cimg_library::CImg<T> &image, float scale){
+		return image * scale;
+	}
+
+	template <class T> static cimg_library::CImg<T> transform(cimg_library::CImg<T> &image, T riseStart, T riseEnd){
+		if (riseEnd < riseStart){
+			throw std::logic_error("Error: riseEnd < riseStart");
+		}
+		float m = 255.0f / (riseEnd - riseStart);
+		float b = 255.0f*riseStart / (riseStart - riseEnd);
+		cimg_forXY(image, x, y){
+			T &val = image(x, y);
+			if (val < riseStart){
+				val = 0;
+			}
+			else if (val > riseEnd){
+				val = T(255);
+			}
+			else {
+				val = b + m*val; //transform
+			}
+		}
+	}
+
+	template <class T> static cimg_library::CImgDisplay showImage(cimg_library::CImg<T> &image, const char* title = ""){
+		cimg_library::CImgDisplay display;
+		display.display(image);
+		display.set_title(title);
+		return display;
+	}
 };
