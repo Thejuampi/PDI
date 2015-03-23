@@ -325,6 +325,8 @@ void ejercicio_8(){
 		nroBotella++;
 	}
 	
+	float lessLoadedPercent = 100.0f;
+	int lessLoadedIndex = -1;
 	for (unsigned i = 0; i < nroBotella; ++i){
 		CImg<unsigned char> &image = botellas[i];
 		
@@ -341,10 +343,17 @@ void ejercicio_8(){
 
 		//hardcoded:
 		float loadedPercent = float(183-y_lleno)*100.0f / 183.0f;
+		if (loadedPercent < lessLoadedPercent){
+			lessLoadedPercent = loadedPercent;
+			lessLoadedIndex = i;
+		}
 		std::stringstream ss;
 		ss << "Botella nº:" << i + 1 << "\t% llena: " << loadedPercent;
 		TjpLogger::getInstance().log(std::string("ejercicio_8()\t"), ss.str());
 	}
+	std::stringstream ss;
+	ss << "Botella menos llena: " << lessLoadedIndex + 1 << " Porcentaje de llenado: " << lessLoadedPercent << "%";
+	TjpLogger::getInstance().log(std::string("ejercicio_8()\t"), ss.str());
 
 }
 
