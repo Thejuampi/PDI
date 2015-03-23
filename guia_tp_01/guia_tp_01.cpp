@@ -321,7 +321,10 @@ void ejercicio_8(){
 	/*x0, y0, x1, y1*/
 	unsigned nroBotella = 0;
 	while (nroBotella < 5){
-		botellas.push_back(botellasRaw.get_crop(posicionBotellas[nroBotella][0][0], posicionBotellas[nroBotella][1][0], posicionBotellas[nroBotella][0][1], posicionBotellas[nroBotella][1][1]));
+		botellas.push_back(botellasRaw.get_crop(posicionBotellas[nroBotella][0][0],
+			posicionBotellas[nroBotella][1][0],
+			posicionBotellas[nroBotella][0][1],
+			posicionBotellas[nroBotella][1][1]));
 		nroBotella++;
 	}
 	
@@ -359,12 +362,44 @@ void ejercicio_8(){
 
 int _tmain(int argc, _TCHAR* argv[])
 {
-	//ejercicio_1();
-	//ejercicio_2();
-	//ejercicio_3();
-	//ejercicio_4();
-	//ejercicio_5();
-	//ejercicio_7();
-	ejercicio_8();
+	int ejercicio = -1;
+		std::cout << "GUIA DE EJERCICIOS NRO 1" << std::endl;
+	do{
+		std::cout << "Ingrese el numero de ejercicio [1-8], 0 = salir" << std::endl;
+		std::cin >> ejercicio;
+
+		while (ejercicio < 0 || ejercicio > 9){
+			std::cout << "Ejercicio incorrecto, ingrese un valor entre 1 y 8, 0 = salir"<<std::endl;
+			std::cin >> ejercicio;
+		}
+
+		switch (ejercicio){
+		case 1:
+			ejercicio_1();
+			break;
+		case 2:
+			ejercicio_2();
+			break;
+		case 3:
+			ejercicio_3();
+			break;
+		case 4:
+			ejercicio_4();
+			break;
+		case 5:
+			ejercicio_5();
+			break;
+		case 6:
+			ejercicio_6();
+			break;
+		case 7:
+			ejercicio_7();
+			break;
+		case 8:
+			ejercicio_8();
+			break;
+		}
+	} while (ejercicio != 0);
+	
 	return 0;
 }
