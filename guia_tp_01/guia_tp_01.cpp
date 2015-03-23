@@ -313,7 +313,7 @@ void ejercicio_8(){
 	unsigned char riseStart = 128;
 	unsigned char riseEnd = botellasRaw.max();
 	CImgUtils::transform(botellasRaw, riseStart, riseEnd);
-	botellasRaw.quantize(4, false); // 2 porque o esta llena o esta vacia.
+	botellasRaw.quantize(4, false); //0 = negro, 1, 2, 3 = blanco
 
 	auto d = CImgUtils::showImage(botellasRaw);
 	CImgUtils::waitForWindow(d);
