@@ -286,6 +286,19 @@ void ejercicio_6(){
 	CImgUtils::waitForWindow(display);
 }
 
+/*Half-Toning*/
+void ejercicio_7(){
+	CImg<unsigned char> huang1("img/huang1.jpg"), huang2("img/huang2.jpg"), huang3("img/huang3.jpg");
+
+	CImgUtils::halfToning(huang1);
+	CImgUtils::halfToning(huang2);
+	CImgUtils::halfToning(huang3);
+
+}
+
+void ejercicio_8(){
+	//TODO
+}
 
 
 int _tmain(int argc, _TCHAR* argv[])
@@ -295,6 +308,6 @@ int _tmain(int argc, _TCHAR* argv[])
 	//ejercicio_3();
 	//ejercicio_4();
 	//ejercicio_5();
-	ejercicio_6();
+	ejercicio_7();
 	return 0;
 }

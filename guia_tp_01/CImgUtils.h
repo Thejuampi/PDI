@@ -2,6 +2,7 @@
 
 #include <cmath> // fabs
 #include <vector>
+#include <map>
 #include "CImg.h"
 #include "TjfLogger.h"
 
@@ -21,6 +22,14 @@ protected:
 	}
 
 public:
+
+	template <class T> static inline T min(const T &v1, const T &v2){
+		return v2 < v1 ? v2 : v1;
+	}
+
+	template <class T> static inline T max(const T &v1, const T &v2){
+		return v2 > v1 ? v2 : v1;
+	}
 
 	template <class T> static inline int redondea(const T& value)
 	{
@@ -89,7 +98,7 @@ public:
 		return image;
 	}
 
-	template <class T = unsigned char> static cimg_library::CImg<T> subSampleBy2(cimg_library::CImg<T> &image ) {
+	template <class T = unsigned char> static inline cimg_library::CImg<T> subSampleBy2(cimg_library::CImg<T> &image ) {
 		cimg_library::CImg<T> subsampled(image.width()/2, image.height()/2, image.depth(), image.spectrum(), 0);
 		for (int x = 0; x < image.width(); x += 2){
 			for (int y = 0; y < image.height(); y += 2){
@@ -98,5 +107,67 @@ public:
 		}
 		return subsampled;
 	}
+	/*Reemplaza una sub region de la imagen por otra. Ojo que no chequea limites*/
+	template <class T> static inline void replaceSubRegion(cimg_library::CImg<T> &destiny, cimg_library::CImg<T> &source, int x_from, int y_from) {
+		for (int x = x_from; x < min(source.width() + x_from, destiny.width()); ++x){
+			for (int y = y_from; y < min(source.height() + y_from, destiny.height()) ; ++y){
+				destiny(x, y) = source(x - x_from, y - y_from);
+			}
+		}
+	}
 
+	template<class T> static cimg_library::CImg<T> halfToning(cimg_library::CImg<T> &imagen){
+		cimg_library::CImg<T> &halfToned = imagen.get_resize(imagen._width / 3, imagen._height / 3);
+		halfToned.quantize(10, false);
+		std::map<T, cimg_library::CImg<T>> mapa;
+		cimg_library::CImg<T> img(3, 3, 1, 1, 0);
+
+		mapa.insert(std::pair<T, cimg_library::CImg<T>>(T(0), img));
+		
+		img(1, 0) = T(255);
+		mapa.insert(std::pair<T, cimg_library::CImg<T>>(T(1), img));
+
+		img(2, 2) = T(255);
+		mapa.insert(std::pair<T, cimg_library::CImg<T>>(T(2), img));
+
+		img(0,0) = T(255);
+		mapa.insert(std::pair<T, cimg_library::CImg<T>>(T(3), img));
+		
+		img(0, 2) = T(255);
+		mapa.insert(std::pair<T, cimg_library::CImg<T>>(T(4), img));
+		
+		img(2, 0) = T(255);
+		mapa.insert(std::pair<T, cimg_library::CImg<T>>(T(5), img));
+
+		img(2, 1) = T(255);
+		mapa.insert(std::pair<T, cimg_library::CImg<T>>(T(6), img));
+
+		img(1, 2) = T(255);
+		mapa.insert(std::pair<T, cimg_library::CImg<T>>(T(7), img));
+
+		img(0, 2) = T(255);
+		mapa.insert(std::pair<T, cimg_library::CImg<T>>(T(8), img));
+
+		img(0, 2) = T(255);
+		mapa.insert(std::pair<T, cimg_library::CImg<T>>(T(9), img));
+
+		halfToned.resize(imagen.width(), imagen.height());
+
+		for (int x = 0; x < halfToned.width(); x+=3){
+			for (int y = 0; y < halfToned.height(); y += 3){
+				T &key = halfToned(x, y);
+				cimg_library::CImg<T> &value = mapa.at(key);
+				replaceSubRegion(halfToned,value , x, y);
+			}
+		}
+
+		CImgDisplay display;
+		display.display(halfToned);
+		display.show();
+
+		waitForWindow(display);
+
+		return halfToned;
+
+	}
 };
