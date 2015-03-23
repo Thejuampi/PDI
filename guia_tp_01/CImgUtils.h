@@ -4,7 +4,7 @@
 #include <vector>
 #include <map>
 #include "CImg.h"
-#include "TjfLogger.h"
+#include "TjpLogger.h"
 
 class CImgUtils{
 
@@ -17,7 +17,7 @@ protected:
 		static std::string callfrom = "agregarPunto()";
 		std::stringstream ss;
 		ss << "x=" << x << " y=" << y;
-		TjfLogger::getInstance().log(callfrom, ss.str());
+		TjpLogger::getInstance().log(callfrom, ss.str());
 #endif
 	}
 
@@ -82,7 +82,7 @@ public:
 #ifdef _DEBUG
 		static std::string callFrom = "generateRandomChar()";
 		unsigned v(valr);
-		TjfLogger::getInstance().log(callFrom, v);
+		TjpLogger::getInstance().log(callFrom, v);
 #endif
 		return valr;
 	}

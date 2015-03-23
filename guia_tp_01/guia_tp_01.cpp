@@ -342,7 +342,7 @@ void ejercicio_8(){
 		float loadedPercent = float(183-y_lleno)*100.0f / 183.0f;
 		std::stringstream ss;
 		ss << "Botella nº:" << i + 1 << "\t% llena: " << loadedPercent;
-		TjfLogger::getInstance().log(std::string("ejercicio_8()\t"), ss.str());
+		TjpLogger::getInstance().log(std::string("ejercicio_8()\t"), ss.str());
 	}
 
 }

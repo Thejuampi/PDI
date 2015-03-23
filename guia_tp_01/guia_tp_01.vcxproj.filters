@@ -27,7 +27,7 @@
     <ClInclude Include="CImgUtils.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="TjfLogger.h">
+    <ClInclude Include="TjpLogger.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

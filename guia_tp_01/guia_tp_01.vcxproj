@@ -82,7 +82,7 @@
     <ClInclude Include="CImgUtils.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="targetver.h" />
-    <ClInclude Include="TjfLogger.h" />
+    <ClInclude Include="TjpLogger.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="guia_tp_01.cpp" />

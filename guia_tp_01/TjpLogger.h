@@ -6,13 +6,13 @@
 #include<ctime>
 
 /*clase singleton utilizada para logear mensajes*/
-class TjfLogger{
+class TjpLogger{
 private:
-	TjfLogger() : logCache(""), converter(), fileStream("log.log", std::ios::app) {
+	TjpLogger() : logCache(""), converter(), fileStream("log.log", std::ios::app) {
 		logCache.reserve(4096);
 	}
-	TjfLogger(TjfLogger &log){} // para mantener la compatibilidad con c++ prev 11
-	void operator=(TjfLogger &log){} //idem anterior
+	TjpLogger(TjpLogger &log){} // para mantener la compatibilidad con c++ prev 11
+	void operator=(TjpLogger &log){} //idem anterior
 
 	/*Retorna un string con la fecha actual yyyy/MM/dd HH:MM:SS*/
 	std::string getCurrentDate(){
@@ -31,12 +31,12 @@ private:
 	std::stringstream converter;
 	std::ofstream fileStream;
 public:
-	static TjfLogger &getInstance(){
-		static TjfLogger instance;
+	static TjpLogger &getInstance(){
+		static TjpLogger instance;
 		return instance;
 	}
 
-	~TjfLogger(){
+	~TjpLogger(){
 		fileStream.close();
 	}
 
