@@ -271,16 +271,15 @@ void ejercicio_6(){
 	CImg<unsigned char> huang2("img/huang2.jpg");
 	CImgList<unsigned char> huangs;
 	huangs.push_back(huang2);
-	int quantize = 8;
-	huangs.push_back(huang2.get_quantize(quantize--));
-	huangs.push_back(huang2.get_quantize(quantize--));
-	huangs.push_back(huang2.get_quantize(quantize--));
-	huangs.push_back(huang2.get_quantize(quantize--));
-	huangs.push_back(huang2.get_quantize(quantize--));
-	huangs.push_back(huang2.get_quantize(quantize--));
-	huangs.push_back(huang2.get_quantize(quantize--));
-	huangs.push_back(huang2.get_quantize(quantize--));
-	
+	int quantize = 256;
+	huangs.push_back(huang2.get_quantize(quantize/=2));
+	huangs.push_back(huang2.get_quantize(quantize/=2));
+	huangs.push_back(huang2.get_quantize(quantize/=2));
+	huangs.push_back(huang2.get_quantize(quantize/=2));
+	huangs.push_back(huang2.get_quantize(quantize/=2));
+	huangs.push_back(huang2.get_quantize(quantize/=2));
+	huangs.push_back(huang2.get_quantize(quantize/=2));
+
 	CImgDisplay display;
 	display.display(huangs);
 	CImgUtils::waitForWindow(display);
