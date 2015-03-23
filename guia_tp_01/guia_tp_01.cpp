@@ -315,8 +315,8 @@ void ejercicio_8(){
 	CImgUtils::transform(botellasRaw, riseStart, riseEnd);
 	botellasRaw.quantize(4, false); //0 = negro, 1, 2, 3 = blanco
 
-	auto d = CImgUtils::showImage(botellasRaw);
-	CImgUtils::waitForWindow(d);
+	//auto d = CImgUtils::showImage(botellasRaw);
+	//CImgUtils::waitForWindow(d);
 
 	/*x0, y0, x1, y1*/
 	unsigned nroBotella = 0;
@@ -327,7 +327,8 @@ void ejercicio_8(){
 	
 	for (unsigned i = 0; i < nroBotella; ++i){
 		CImg<unsigned char> &image = botellas[i];
-		int x_pos = image._width/4;
+		
+		int x_pos = image._width/2;
 		
 		int y_lleno = 0;
 		for (int y = image.height()-1; y >= 0; --y) {

@@ -118,6 +118,8 @@ public:
 
 	template<class T> static cimg_library::CImg<T> halfToning(cimg_library::CImg<T> &imagen){
 		cimg_library::CImg<T> &halfToned = imagen.get_resize(imagen._width / 3, imagen._height / 3);
+		//transform(imagen, T(100), T(200));
+		imagen.log();
 		halfToned.quantize(10, false);
 		std::map<T, cimg_library::CImg<T>> mapa;
 		cimg_library::CImg<T> img(3, 3, 1, 1, 0);
@@ -176,7 +178,7 @@ public:
 		return image * scale;
 	}
 
-	template <class T> static cimg_library::CImg<T> transform(cimg_library::CImg<T> &image, T riseStart, T riseEnd){
+	template <class T> static void transform(cimg_library::CImg<T> &image, T riseStart, T riseEnd){
 		if (riseEnd < riseStart){
 			throw std::logic_error("Error: riseEnd < riseStart");
 		}
@@ -185,13 +187,13 @@ public:
 		cimg_forXY(image, x, y){
 			T &val = image(x, y);
 			if (val < riseStart){
-				val = 0;
+				val = T(0);
 			}
 			else if (val > riseEnd){
-				val = T(255);
+				val = ~T(0);
 			}
 			else {
-				val = b + m*val; //transform
+				val = T(b + m*val); //transform
 			}
 		}
 	}
