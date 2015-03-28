@@ -3,9 +3,26 @@
 #include <cmath> // fabs
 #include <vector>
 #include <map>
+#include <set>
 #include <sstream>
 #include "CImg.h"
 #include "TjpLogger.h"
+
+template <class T = unsigned char> class Punto{
+private:
+	T _x;
+	T _y;
+public:
+	Punto(T x, T y) :this._x(x), this._y(y){}
+	T x(){ return _x; }
+	T y(){ return _y; }
+	bool operator==(Punto<T> &p){ // simil java equals, p nunca es nulo
+		return this._x == p.x() && this._y == p.y();
+	}
+	bool operator!=(Punto<T> &p){
+		return this._x != p.x() || this._y != p.y();
+	}
+};
 
 class CImgUtils{
 
@@ -239,6 +256,17 @@ public:
 		return copy;
 	}
 
+	/*Modifica una LUT*/
+	template <class T = unsigned char> static inline void alterLUT(std::vector<T> &LUT, float gain = 1.0f, float offset = 0.0f, T &start = T(0), T &end = T(255)){
+		if (end < start) intercambia(start, end);
+		if (start < T(0)) start = T(0);
+		if (end > T(255)) end = T(255);
+		for (T x = start; x < end; ++x){
+			LUT[x] = linearTransform(x, gain, offset);
+		}
+		//return LUT;
+	}
+
 	/*Crea una LUT, con ganancia, offset, inicio del rango y fin del rango */
 	template <class T = unsigned char> static inline std::vector<T> createLut255(float gain = 1.0f, float offset = 0.0f, T start = T(0), T end = T(255)) {
 		if (end < start) intercambia(start, end);
@@ -246,19 +274,54 @@ public:
 		if (end > T(255)) end = T(255);
 		int range = abs(end - start);
 		std::vector<T> result(range);
-		for (T x = start; x < end; ++x){
-			result[x] = linearTransform(x, gain, offset);
-		}
+		alterLUT(result, gain, offset, start, end);
 		return result;
 	}
 
-	/*Mapea una LUT sobre una imagen y retorna la imagen resultante*/
-		template <class T = unsigned char> static inline cimg_library::CImg<T> mapLUT(cimg_library::CImg<T> &source, std::vector<T> &LUT) {
+	/*Mapea una LUT sobre una imagen y retorna la imagen resultante. No altera la imagen Original*/
+	template <class T = unsigned char> static inline cimg_library::CImg<T> mapLUT(cimg_library::CImg<T> &source, std::vector<T> &LUT) {
 		CImg<T> copy = source;
 		cimg_forXY(source, x, y){
-			T &val = copy(X, y);
+			T &val = copy(x, y);
 			val = LUT[val];
 		}
 		return copy;
 	}
+	/*Dados dos puntos, calcula la pendiente de la linea que los une*/
+	template <class T = unsigned char> static inline float calcularGanancia(Punto<T> actual, Punto<T> next) {
+		float pend = float(next.y() - actual.y()) / float(next.x() - actual.x());
+		return pend;
+	}
+
+	/*Dados dos puntos, calcula la constante de la ecuación de la recta de los une*/
+	template <class T = unsigned char> static inline float calcularOffset(Punto<T> actual, Punto<T> next){
+		//c=(x2*y1 - x1*y2) / (x2 - x1)
+		float offset = float(next.x() * actual.y() - actual.x()*next.y() ) / float(next.x() - actual.x());
+		return offset;
+	}
+	/*TODO add doc*/
+	template <class T = unsigned char> static inline void addRange(Punto<T> &punto, cimg_library::CImg<T> &image, std::vector<T> &LUT){
+		static std::set<Punto<T> > rangos = { Punto(T(0),T(0)), Punto(T(255),T(255)) }; // se crea una ves. Ojo, no es para nada thread safe.
+		
+		auto rangoIterator = rangos.find(punto);
+		if (rangoIterator == rangos.end()){ // no tiene el valor -> modificar la curva
+			auto valorInsertadoIterator = rangos.insert(punto); //ordena automaticamente de menor a mayor.
+			Punto<T> &valorActual = punto;
+			Punto<T> &valorAnterior = *(valorInsertadoIterator - 1);
+			Punto<T> &valorSiguiente = *(valorInsertadoIterator + 1);
+			/*Tengo que modificar la curva anterior y la siguiente al punto actual*/
+			/*Curva anterior, no confundir con el valor que tenia previamente, sino con la curva que esta antes.*/
+			float pendienteAnterior = calcularGanancia(valorAnterior, valorActual );
+			float offsetAnterior = calcularOffset(valorAnterior, valorActual);
+			alterLUT(LUT, pendienteAnterior, offsetAnterior, valorAnterior.x(), valorActual.x());
+			/*Curva siguiente*/
+			float pendienteSiguiente = calcularGanancia(valorActual, valorSiguiente);
+			float offsetSiguiente = calcularOffset(valorActual, valorSiguiente);
+			alterLUT(LUT, pendienteSiguiente, offsetSiguiente, valorActual.x(), valorSiguiente._x());
+
+			/*Segunda etapa, mapear de nuevo el LUT a la imagen. TODO: optimizar para que solo mapee los segmentos nuevos*/
+			mapLUT(image, LUT)
+		} // else -> no hacer nada, porque el valor ya esta.
+	}
+
 };
