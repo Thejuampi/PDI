@@ -3,6 +3,7 @@
 #include <cmath> // fabs
 #include <vector>
 #include <map>
+#include <sstream>
 #include "CImg.h"
 #include "TjpLogger.h"
 
@@ -87,17 +88,22 @@ public:
 		return valr;
 	}
 
+	/*Deja una ventana ociosa a la espera de un evento. Sirve principalmente para que no se cierre.*/
 	static inline void waitForWindow(cimg_library::CImgDisplay &imagen){
+		static std::string callFrom("waitForWindow()");
+		TjpLogger::getInstance().log(callFrom, "Esperando Evento...");
 		while (!imagen.is_closed()) { imagen.wait(); }
 	}
 
+	/*Crea una CImg y le dibuja un círculo en el medio*/
 	static cimg_library::CImg<unsigned char> drawCircle(int width, int height, int circleRadius){
+		static unsigned char white[] = { 255 };
 		cimg_library::CImg<unsigned char> image(width, height, 1, 1, 0);
-		unsigned char white[] = { 255 };
 		image.draw_circle(width/2, height/2, circleRadius, white);
 		return image;
 	}
 
+	/*Reduce el tamaño de la imagen a la mitad. Descarta pixeles intermedios*/
 	template <class T = unsigned char> static inline cimg_library::CImg<T> subSampleBy2(cimg_library::CImg<T> &image ) {
 		cimg_library::CImg<T> subsampled(image.width()/2, image.height()/2, image.depth(), image.spectrum(), 0);
 		for (int x = 0; x < image.width(); x += 2){
@@ -116,6 +122,7 @@ public:
 		}
 	}
 
+	/*Crea una imagen de medios tonos. No modifica la original*/
 	template<class T> static cimg_library::CImg<T> halfToning(cimg_library::CImg<T> &imagen){
 		cimg_library::CImg<T> &halfToned = imagen.get_resize(imagen._width / 3, imagen._height / 3);
 		//transform(imagen, T(100), T(200));
@@ -178,6 +185,7 @@ public:
 		return image * scale;
 	}
 
+	/*Transforma una imagen, a partir de un valor de inicio (aplica 0 hasta dicho valor) y un valor final(todo lo superior va a 255)*/
 	template <class T> static void transform(cimg_library::CImg<T> &image, T riseStart, T riseEnd){
 		if (riseEnd < riseStart){
 			throw std::logic_error("Error: riseEnd < riseStart");
@@ -198,10 +206,59 @@ public:
 		}
 	}
 
+	/*Crea una ventana y muestra la imagen que se pasa como parametro. EL titulo es opcional. Retorna la ventana*/
 	template <class T> static cimg_library::CImgDisplay showImage(cimg_library::CImg<T> &image, const char* title = ""){
 		cimg_library::CImgDisplay display;
 		display.display(image);
 		display.set_title(title);
 		return display;
+	}
+
+	/*Transforma linealmente un pixel, no modifica el original*/
+	template <class T> static T linearTransform(T &value, float gain = 1.0f, float offset = 0.0f){
+		T val = value;
+		float fVal = float(val);
+		fVal = gain*fVal + offset;
+		if (fVal < 0.0f) fVal = 0.0f;
+		if (fVal > 255.0f) fVal = 255.0f;
+		val = T(redondea(fVal));
+		return val;
+	}
+
+	/*Transforma linealmente una imagen. No modifica la imagen original*/
+	template <class T> static cimg_library::CImg<T> linearTransform(cimg_library::CImg<T> &source, float gain = 1.0f, float offset=0.0f){
+		cimg_library::CImg<T> copy = source; //copia?
+		cimg_forXY(copy, x, y){
+			T &val = copy(x, y);
+			float fVal = float(val);
+			fVal = gain*fVal + offset;
+			if (fVal < 0.0f) fVal = 0.0f;
+			if (fVal > 255.0f) fVal = 255.0f;
+			val = T(redondea(fVal));
+		}
+		return copy;
+	}
+
+	/*Crea una LUT, con ganancia, offset, inicio del rango y fin del rango */
+	template <class T = unsigned char> static inline std::vector<T> createLut255(float gain = 1.0f, float offset = 0.0f, T start = T(0), T end = T(255)) {
+		if (end < start) intercambia(start, end);
+		if (start < T(0)) start = T(0);
+		if (end > T(255)) end = T(255);
+		int range = abs(end - start);
+		std::vector<T> result(range);
+		for (T x = start; x < end; ++x){
+			result[x] = linearTransform(x, gain, offset);
+		}
+		return result;
+	}
+
+	/*Mapea una LUT sobre una imagen y retorna la imagen resultante*/
+		template <class T = unsigned char> static inline cimg_library::CImg<T> mapLUT(cimg_library::CImg<T> &source, std::vector<T> &LUT) {
+		CImg<T> copy = source;
+		cimg_forXY(source, x, y){
+			T &val = copy(X, y);
+			val = LUT[val];
+		}
+		return copy;
 	}
 };
