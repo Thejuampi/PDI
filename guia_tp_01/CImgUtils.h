@@ -371,7 +371,7 @@ public:
 			alterLUT(LUT, pendienteSiguiente, offsetSiguiente, x_actual, x_siguiente);
 
 			/*Segunda etapa, mapear de nuevo el LUT a la imagen. TODO: optimizar para que solo mapee los segmentos nuevos*/
-			mapLUT(image, LUT);
+			image = mapLUT(image, LUT);
 
 			/*Tercera etapa, redibujar la curva*/
 			redrawCurve(rangos, curve);

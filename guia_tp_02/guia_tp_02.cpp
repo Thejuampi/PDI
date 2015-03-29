@@ -26,6 +26,7 @@ void ejercicio_1(){
 			CImgUtils::addRange(puntoCliqueado, image, LUT, curva);
 			ventanaCurva.display(curva);
 			ventanaImagen.display(image);
+			ventanaCurva.wait(50);
 		}
 		else {
 			ventanaCurva.wait();
