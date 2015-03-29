@@ -27,6 +27,7 @@ void ejercicio_1(){
 			ventanaCurva.display(curva);
 			ventanaImagen.display(image);
 			ventanaCurva.wait(50);
+			ventanaCurva.set_button(); //resetea el mouse.
 		}
 		else {
 			ventanaCurva.wait();
