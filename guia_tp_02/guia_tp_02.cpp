@@ -9,11 +9,11 @@ void ejercicio_1(){
 	static unsigned char color[] = { 255 };
 	std::vector<unsigned char> &LUT = CImgUtils::createLut255(); // por defecto, la identidad
 	
-	CImg<unsigned char> image("../guia_tp_01/img/cameraman.tif");
+	CImg<unsigned char> originalImage("../guia_tp_01/img/cameraman.tif");
 
 	CImg<unsigned char> curva = CImgUtils::new2DImageUchar(255, 255);
 	CImgDisplay ventanaCurva(255, 255, "Curva");
-	CImgDisplay ventanaImagen(image);
+	CImgDisplay ventanaImagen(originalImage);
 	curva.draw_line(0, 255, 255, 0, color);
 	ventanaCurva.display(curva);
 	ventanaCurva.wait();
@@ -23,9 +23,10 @@ void ejercicio_1(){
 			unsigned char y = ventanaCurva.mouse_y();
 			y = 255 - y;
 			Punto<unsigned char> puntoCliqueado(x, y);
-			CImgUtils::addRange(puntoCliqueado, image, LUT, curva);
+			CImg<unsigned char> editedImage(originalImage); // copia?
+			CImgUtils::addRange(puntoCliqueado, editedImage, LUT, curva);
 			ventanaCurva.display(curva);
-			ventanaImagen.display(image);
+			ventanaImagen.display(editedImage);
 			ventanaCurva.wait(50);
 			ventanaCurva.set_button(); //resetea el mouse.
 		}
