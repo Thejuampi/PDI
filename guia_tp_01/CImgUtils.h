@@ -293,6 +293,7 @@ public:
 
 	/*Modifica una LUT*/
 	template <class T = unsigned char> static void alterLUT(std::vector<T> &LUT, const float gain = 1.0f, const float offset = 0.0f, T start = T(0), T end = T(255)){
+		if (start == end) return;
 		if (end < start) intercambia(start, end);
 		if (start < T(0)) start = T(0);
 		if (end > T(255)) end = T(255);
@@ -301,6 +302,14 @@ public:
 		}
 		//No se puede hacer el <= porque se pasa de rango al hacer 255+1 = 0
 		LUT[end] = linearTransform(end, gain, offset);
+#ifdef _DEBUG
+			static std::string c("alterLut()");
+				std::stringstream ss;
+			for (auto i : LUT){
+				ss << int(i) << ", ";
+			}
+			TjpLogger::getInstance().log(c, ss.str());
+#endif
 		//return LUT;
 	}
 
@@ -363,12 +372,14 @@ public:
 			float offsetAnterior = calcularOffset(valorAnterior, valorActual);
 			T x_anterior = const_cast<Punto<T>&>(valorAnterior).x();
 			T x_actual = const_cast<Punto<T>&>( valorActual).x();
-			alterLUT(LUT, pendienteAnterior, offsetAnterior, x_anterior, x_actual);
+			if ( x_actual > x_anterior)
+				alterLUT(LUT, pendienteAnterior, offsetAnterior, x_anterior, x_actual);
 			/*Curva siguiente*/
 			float pendienteSiguiente = calcularGanancia(valorActual, valorSiguiente);
 			float offsetSiguiente = calcularOffset(valorActual, valorSiguiente);
 			T x_siguiente = const_cast<Punto<T>&>(valorSiguiente).x();
-			alterLUT(LUT, pendienteSiguiente, offsetSiguiente, x_actual, x_siguiente);
+			if (x_siguiente > ++x_actual)
+				alterLUT(LUT, pendienteSiguiente, offsetSiguiente, x_actual, x_siguiente);
 
 			/*Segunda etapa, mapear de nuevo el LUT a la imagen. TODO: optimizar para que solo mapee los segmentos nuevos*/
 			image = mapLUT(image, LUT);
