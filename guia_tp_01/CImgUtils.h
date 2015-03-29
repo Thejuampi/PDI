@@ -1,9 +1,11 @@
 #pragma once
 
 #include <cmath> // fabs
+#include <string>
 #include <vector>
 #include <map>
 #include <set>
+#include <iterator>
 #include <sstream>
 #include "CImg.h"
 #include "TjpLogger.h"
@@ -13,16 +15,41 @@ private:
 	T _x;
 	T _y;
 public:
-	Punto(T x, T y) :this._x(x), this._y(y){}
-	T x(){ return _x; }
-	T y(){ return _y; }
-	bool operator==(Punto<T> &p){ // simil java equals, p nunca es nulo
-		return this._x == p.x() && this._y == p.y();
+	Punto(T x, T y) :_x(x),_y(y){}
+	Punto() :_x(-1), _y(-1){}
+	T x(){ return this->_x; }
+	T y(){ return this->_y; }
+
+	template <class T>
+	friend inline bool operator<(const Punto<T> &p0, const Punto<T> &p1) {
+		return p0._x < p1._x;
 	}
-	bool operator!=(Punto<T> &p){
-		return this._x != p.x() || this._y != p.y();
+#if 0
+	bool operator ==(const Punto<T> &p0){ // simil java equals, p nunca es nulo
+		return _x == p0.x() && _y == p.y();
 	}
+	bool operator !=(const Punto<T> &p0){
+		return _x != p0.x() || _y != p.y();
+	}
+
+	bool operator<(const Punto<T> &p0) {
+		return _x < p0.x();
+	}
+	bool operator<=(const Punto<T> &p0) {
+		return _x <= p0.x();
+	}
+#endif
 };
+//template <typename T>
+//struct PuntoComparator{
+//	bool operator< (const Punto<T> &p0, const Punto<T> &p1) {
+//		return p0.x() < p1.x();
+//	}
+//};
+//
+//bool std::operator<(const Punto<unsigned char> &p0, const Punto<unsigned char> &p1){
+//	return p0.x() < p1.x();
+//}
 
 class CImgUtils{
 
@@ -58,6 +85,14 @@ public:
 	{
 		T t0 = t1; t1 = t2; t2 = t0;
 	} // cambia el contenido y no la direccion (lento pero seguro)
+
+	template <class T> static inline cimg_library::CImg<T> new2DImage(unsigned int width, unsigned int height, unsigned spectrum){
+		return cimg_library::CImg<T>(width, height, 1, spectrum, T(0));
+	}
+
+	static inline cimg_library::CImg<unsigned char> new2DImageUchar(unsigned int width, unsigned int height){
+		return new2DImage<unsigned char>(width, height, 1);
+	}
 
 	void static lineaBresenham(int x1, int y1, int x2, int y2, std::vector<std::pair<int,int>> &puntos) { //no tiene divisiones comparado con DDA, y no tiene redondeos, es mas eficiente
 		int dx = x2 - x1, dy = y2 - y1, x, y, NE, E, D, xstep, ystep;
@@ -257,13 +292,15 @@ public:
 	}
 
 	/*Modifica una LUT*/
-	template <class T = unsigned char> static inline void alterLUT(std::vector<T> &LUT, float gain = 1.0f, float offset = 0.0f, T &start = T(0), T &end = T(255)){
+	template <class T = unsigned char> static void alterLUT(std::vector<T> &LUT, const float gain = 1.0f, const float offset = 0.0f, T start = T(0), T end = T(255)){
 		if (end < start) intercambia(start, end);
 		if (start < T(0)) start = T(0);
 		if (end > T(255)) end = T(255);
 		for (T x = start; x < end; ++x){
 			LUT[x] = linearTransform(x, gain, offset);
 		}
+		//No se puede hacer el <= porque se pasa de rango al hacer 255+1 = 0
+		LUT[end] = linearTransform(end, gain, offset);
 		//return LUT;
 	}
 
@@ -272,7 +309,7 @@ public:
 		if (end < start) intercambia(start, end);
 		if (start < T(0)) start = T(0);
 		if (end > T(255)) end = T(255);
-		int range = abs(end - start);
+		int range = abs(end - start)+1;
 		std::vector<T> result(range);
 		alterLUT(result, gain, offset, start, end);
 		return result;
@@ -296,32 +333,77 @@ public:
 	/*Dados dos puntos, calcula la constante de la ecuación de la recta de los une*/
 	template <class T = unsigned char> static inline float calcularOffset(Punto<T> actual, Punto<T> next){
 		//c=(x2*y1 - x1*y2) / (x2 - x1)
-		float offset = float(next.x() * actual.y() - actual.x()*next.y() ) / float(next.x() - actual.x());
+		float x1 = float(actual.x());
+		float x2 = float(next.x());
+		float y1 = float(actual.y());
+		float y2 = float(next.y());
+		float offset = (x2*y1 - x1*y2) / (x2 - x1);
 		return offset;
 	}
 	/*TODO add doc*/
-	template <class T = unsigned char> static inline void addRange(Punto<T> &punto, cimg_library::CImg<T> &image, std::vector<T> &LUT){
-		static std::set<Punto<T> > rangos = { Punto(T(0),T(0)), Punto(T(255),T(255)) }; // se crea una ves. Ojo, no es para nada thread safe.
+	template <class T = unsigned char> static inline void addRange(Punto<T> &valorActual, cimg_library::CImg<T> &image, std::vector<T> &LUT, cimg_library::CImg<T> &curve){
+		static std::set<Punto<T>> rangos = { Punto<T>(T(0), T(0)), Punto<T>(T(255), T(255)) }; // se crea una ves. Ojo, no es para nada thread safe.
 		
-		auto rangoIterator = rangos.find(punto);
+		std::set<Punto<T>>::iterator rangoIterator = rangos.find(valorActual);
+
 		if (rangoIterator == rangos.end()){ // no tiene el valor -> modificar la curva
-			auto valorInsertadoIterator = rangos.insert(punto); //ordena automaticamente de menor a mayor.
-			Punto<T> &valorActual = punto;
-			Punto<T> &valorAnterior = *(valorInsertadoIterator - 1);
-			Punto<T> &valorSiguiente = *(valorInsertadoIterator + 1);
+			rangos.insert(valorActual); //ordena automaticamente de menor a mayor.
+			std::set<Punto<T>>::iterator valorInsertadoIterator = rangos.find(valorActual);
+			std::set<Punto<T>>::iterator copiaMas = valorInsertadoIterator;
+			std::set<Punto<T>>::iterator copiaMenos = valorInsertadoIterator;
+
+			//std::set<Punto<T> >::iterator valorInsertadoIterator = rangos.insert(punto); //ordena automaticamente de menor a mayor.
+
+			//Punto<T> &valorActual = punto;
+			const Punto<T> &valorAnterior = *(--copiaMenos);
+			const Punto<T> &valorSiguiente = *(++copiaMas);
 			/*Tengo que modificar la curva anterior y la siguiente al punto actual*/
 			/*Curva anterior, no confundir con el valor que tenia previamente, sino con la curva que esta antes.*/
 			float pendienteAnterior = calcularGanancia(valorAnterior, valorActual );
 			float offsetAnterior = calcularOffset(valorAnterior, valorActual);
-			alterLUT(LUT, pendienteAnterior, offsetAnterior, valorAnterior.x(), valorActual.x());
+			T x_anterior = const_cast<Punto<T>&>(valorAnterior).x();
+			T x_actual = const_cast<Punto<T>&>( valorActual).x();
+			alterLUT(LUT, pendienteAnterior, offsetAnterior, x_anterior, x_actual);
 			/*Curva siguiente*/
 			float pendienteSiguiente = calcularGanancia(valorActual, valorSiguiente);
 			float offsetSiguiente = calcularOffset(valorActual, valorSiguiente);
-			alterLUT(LUT, pendienteSiguiente, offsetSiguiente, valorActual.x(), valorSiguiente._x());
+			T x_siguiente = const_cast<Punto<T>&>(valorSiguiente).x();
+			alterLUT(LUT, pendienteSiguiente, offsetSiguiente, x_actual, x_siguiente);
 
 			/*Segunda etapa, mapear de nuevo el LUT a la imagen. TODO: optimizar para que solo mapee los segmentos nuevos*/
-			mapLUT(image, LUT)
+			mapLUT(image, LUT);
+
+			/*Tercera etapa, redibujar la curva*/
+			redrawCurve(rangos, curve);
+#if 0
+#endif
 		} // else -> no hacer nada, porque el valor ya esta.
+
+	}
+
+protected:
+	template <class T> static inline void redrawCurve(std::set<Punto<T>> &rangos, cimg_library::CImg<T> &image) {
+		static unsigned char color[] = { 255 };
+		image.fill(T(0));
+		std::set<Punto<T>>::iterator actualPoint = rangos.begin();
+		if (actualPoint == rangos.end()) return;
+		std::set<Punto<T>>::iterator nextPoint = actualPoint;
+		++nextPoint;
+		if (nextPoint == rangos.end()) return;
+		while (nextPoint != rangos.end()){
+			const Punto<T> &p0 = (*actualPoint++);
+			const Punto<T> &p1 = (*nextPoint++);
+			image.draw_line(const_cast<Punto<T>&>(p0).x(),
+				255 - const_cast<Punto<T>&>(p0).y(),
+				const_cast<Punto<T>&>(p1).x(),
+				255 - const_cast<Punto<T>&>(p1).y(),
+				color);
+		}
+#ifdef _DEBUG
+		static std::string c("redrawCurve()");
+		TjpLogger::getInstance().log(c, "Guardando imagen de curva");
+		image.save_bmp("click.bmp");
+#endif
 	}
 
 };
