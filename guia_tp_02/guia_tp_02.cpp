@@ -27,7 +27,7 @@ void ejercicio_1(){
 			CImgUtils::addRange(puntoCliqueado, editedImage, LUT, curva);
 			ventanaCurva.display(curva);
 			ventanaImagen.display(editedImage);
-			ventanaCurva.wait(50);
+			//ventanaCurva.wait(50);
 			ventanaCurva.set_button(); //resetea el mouse.
 		}
 		else {
@@ -37,9 +37,52 @@ void ejercicio_1(){
 	
 }
 
+void ejercicio_2(){
+	CImg<unsigned char> originalImage("../guia_tp_01/img/rmn.jpg");
+
+	CImg<unsigned char> powImage(originalImage);
+	CImg<unsigned char> logImage(originalImage);
+	CImgUtils::logarithmicTransformation(logImage, 1024.0f);
+	CImgUtils::powTransformation(powImage, 3.0f);
+	CImgList<unsigned char> imagesList;
+	imagesList.push_back(originalImage);
+	imagesList.push_back(powImage);
+	imagesList.push_back(logImage);
+
+	CImgDisplay ventana;
+	ventana.display(imagesList);
+	CImgUtils::waitForWindow(ventana);
+
+}
+
+void ejercicio_3(){
+
+	CImg<unsigned char> originalImage("../guia_tp_01/img/cameraman.tif");
+	std::vector<CImg<unsigned char>> images;
+	images.reserve(100);
+	for (unsigned counter = 0; counter < 100; ++counter){
+		images.push_back(CImgUtils::addNoise(originalImage, 0.0f, 255.0f*0.05f));
+	}
+
+	CImg<unsigned char> &modifiedImage = CImgUtils::reduceNoise(images);
+
+	CImgDisplay originalImageWindow(originalImage);
+	CImgDisplay modifiedImageWindow(modifiedImage);
+
+	originalImageWindow.display(originalImage);
+	modifiedImageWindow.display(modifiedImage);
+
+	while (!originalImageWindow.is_closed() && !modifiedImageWindow.is_closed()){
+		originalImageWindow.wait();
+		modifiedImageWindow.wait();
+	}
+
+}
+
 int _tmain(int argc, _TCHAR* argv[])
 {
-	ejercicio_1();
+	//ejercicio_1();
+	ejercicio_3();
 
 	return 0;
 }

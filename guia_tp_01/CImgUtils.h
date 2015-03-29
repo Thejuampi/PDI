@@ -7,6 +7,7 @@
 #include <set>
 #include <iterator>
 #include <sstream>
+#include <random>
 #include "CImg.h"
 #include "TjpLogger.h"
 
@@ -15,7 +16,7 @@ private:
 	T _x;
 	T _y;
 public:
-	Punto(T x, T y) :_x(x),_y(y){}
+	Punto(T x, T y) :_x(x), _y(y){}
 	Punto() :_x(-1), _y(-1){}
 	T x(){ return this->_x; }
 	T y(){ return this->_y; }
@@ -78,7 +79,7 @@ public:
 
 	template <class T> static inline int redondea(const T& value)
 	{
-		return (value>0) ? (int(value + .5)) : (int(value - .5));
+		return (value > 0) ? (int(value + .5)) : (int(value - .5));
 	}
 
 	template <class T> static inline void intercambia(T&t1, T&t2) //swap en conflicto con stl
@@ -94,33 +95,33 @@ public:
 		return new2DImage<unsigned char>(width, height, 1);
 	}
 
-	void static lineaBresenham(int x1, int y1, int x2, int y2, std::vector<std::pair<int,int>> &puntos) { //no tiene divisiones comparado con DDA, y no tiene redondeos, es mas eficiente
+	void static lineaBresenham(int x1, int y1, int x2, int y2, std::vector<std::pair<int, int>> &puntos) { //no tiene divisiones comparado con DDA, y no tiene redondeos, es mas eficiente
 		int dx = x2 - x1, dy = y2 - y1, x, y, NE, E, D, xstep, ystep;
 		puntos.clear();
-		if (!(dx || dy)) { 
+		if (!(dx || dy)) {
 			puntos.push_back(std::pair<int, int>(x1, y1));
 			return;
 		}
 
-		if (abs(dx)>abs(dy)) { //|dx|>|dy| => tendencia horizontal
-			if (dx<0) { intercambia(x1, x2); intercambia(y1, y2); dx = -dx; dy = -dy; } // de P2 a P1, intercambia para ir de P1 a P2
+		if (abs(dx) > abs(dy)) { //|dx|>|dy| => tendencia horizontal
+			if (dx < 0) { intercambia(x1, x2); intercambia(y1, y2); dx = -dx; dy = -dy; } // de P2 a P1, intercambia para ir de P1 a P2
 			x = x1; y = y1; NE = dx << 1; // (<<1 = *2, shift de un bit)
-			ystep = 1; if (dy<0) { ystep = -1; dy = -dy; } //ystep = 1 sino doy vuelta; a y le sumo 1, sino le resto 1 para los siguientes puntos
+			ystep = 1; if (dy < 0) { ystep = -1; dy = -dy; } //ystep = 1 sino doy vuelta; a y le sumo 1, sino le resto 1 para los siguientes puntos
 			E = dy << 1; D = E - dx; //= 2*dy-dx
-			while (x<x2) {
+			while (x < x2) {
 				agregarPunto(x, y, puntos);
-				if (D>0) { y += ystep; D -= NE;/*D=2*dx*di+2*dy-dx; le resto 2dx siD>0*/ } // determina su subo(bajo) "y", x siempre avanza en 1
+				if (D > 0) { y += ystep; D -= NE;/*D=2*dx*di+2*dy-dx; le resto 2dx siD>0*/ } // determina su subo(bajo) "y", x siempre avanza en 1
 				x++; D += E; //E = 2dy
 			}
 		}
 		else{//tendencia vertical
-			if (dy<0) { intercambia(y1, y2); intercambia(x1, x2); dy = -dy; dx = -dx; } //de P2 a P1, blabla
+			if (dy < 0) { intercambia(y1, y2); intercambia(x1, x2); dy = -dy; dx = -dx; } //de P2 a P1, blabla
 			y = y1; x = x1; NE = dy << 1; // (<<1 = *2, shift de un bit)
-			xstep = 1; if (dx<0) { xstep = -1; dx = -dx; }
+			xstep = 1; if (dx < 0) { xstep = -1; dx = -dx; }
 			E = dx << 1; D = E - dy;
-			while (y<y2) {
+			while (y < y2) {
 				agregarPunto(x, y, puntos);
-				if (D>0) { x += xstep; D -= NE; } //determina si avanzo(retroceso en x, "y" siempre avanza en 1.
+				if (D > 0) { x += xstep; D -= NE; } //determina si avanzo(retroceso en x, "y" siempre avanza en 1.
 				y++; D += E;
 			}
 		}
@@ -151,16 +152,16 @@ public:
 	static cimg_library::CImg<unsigned char> drawCircle(int width, int height, int circleRadius){
 		static unsigned char white[] = { 255 };
 		cimg_library::CImg<unsigned char> image(width, height, 1, 1, 0);
-		image.draw_circle(width/2, height/2, circleRadius, white);
+		image.draw_circle(width / 2, height / 2, circleRadius, white);
 		return image;
 	}
 
 	/*Reduce el tamaño de la imagen a la mitad. Descarta pixeles intermedios*/
-	template <class T = unsigned char> static inline cimg_library::CImg<T> subSampleBy2(cimg_library::CImg<T> &image ) {
-		cimg_library::CImg<T> subsampled(image.width()/2, image.height()/2, image.depth(), image.spectrum(), 0);
+	template <class T = unsigned char> static inline cimg_library::CImg<T> subSampleBy2(cimg_library::CImg<T> &image) {
+		cimg_library::CImg<T> subsampled(image.width() / 2, image.height() / 2, image.depth(), image.spectrum(), 0);
 		for (int x = 0; x < image.width(); x += 2){
 			for (int y = 0; y < image.height(); y += 2){
-				subsampled(x/2, y/2) = image(x, y);
+				subsampled(x / 2, y / 2) = image(x, y);
 			}
 		}
 		return subsampled;
@@ -168,7 +169,7 @@ public:
 	/*Reemplaza una sub region de la imagen por otra. Ojo que no chequea limites*/
 	template <class T> static inline void replaceSubRegion(cimg_library::CImg<T> &destiny, cimg_library::CImg<T> &source, int x_from, int y_from) {
 		for (int x = x_from; x < min(source.width() + x_from, destiny.width()); ++x){
-			for (int y = y_from; y < min(source.height() + y_from, destiny.height()) ; ++y){
+			for (int y = y_from; y < min(source.height() + y_from, destiny.height()); ++y){
 				destiny(x, y) = source(x - x_from, y - y_from);
 			}
 		}
@@ -184,19 +185,19 @@ public:
 		cimg_library::CImg<T> img(3, 3, 1, 1, 0);
 
 		mapa.insert(std::pair<T, cimg_library::CImg<T>>(T(0), img));
-		
+
 		img(1, 0) = T(255);
 		mapa.insert(std::pair<T, cimg_library::CImg<T>>(T(1), img));
 
 		img(2, 2) = T(255);
 		mapa.insert(std::pair<T, cimg_library::CImg<T>>(T(2), img));
 
-		img(0,0) = T(255);
+		img(0, 0) = T(255);
 		mapa.insert(std::pair<T, cimg_library::CImg<T>>(T(3), img));
-		
+
 		img(0, 2) = T(255);
 		mapa.insert(std::pair<T, cimg_library::CImg<T>>(T(4), img));
-		
+
 		img(2, 0) = T(255);
 		mapa.insert(std::pair<T, cimg_library::CImg<T>>(T(5), img));
 
@@ -214,11 +215,11 @@ public:
 
 		halfToned.resize(imagen.width(), imagen.height());
 
-		for (int x = 0; x < halfToned.width(); x+=3){
+		for (int x = 0; x < halfToned.width(); x += 3){
 			for (int y = 0; y < halfToned.height(); y += 3){
 				T &key = halfToned(x, y);
 				cimg_library::CImg<T> &value = mapa.at(key);
-				replaceSubRegion(halfToned,value , x, y);
+				replaceSubRegion(halfToned, value, x, y);
 			}
 		}
 
@@ -267,7 +268,7 @@ public:
 	}
 
 	/*Transforma linealmente un pixel, no modifica el original*/
-	template <class T> static T linearTransform(T &value, float gain = 1.0f, float offset = 0.0f){
+	template <class T> static T linearTransformation(T &value, float gain = 1.0f, float offset = 0.0f){
 		T val = value;
 		float fVal = float(val);
 		fVal = gain*fVal + offset;
@@ -278,7 +279,7 @@ public:
 	}
 
 	/*Transforma linealmente una imagen. No modifica la imagen original*/
-	template <class T> static cimg_library::CImg<T> linearTransform(cimg_library::CImg<T> &source, float gain = 1.0f, float offset=0.0f){
+	template <class T> static cimg_library::CImg<T> linearTransformation(cimg_library::CImg<T> &source, float gain = 1.0f, float offset = 0.0f){
 		cimg_library::CImg<T> copy = source; //copia?
 		cimg_forXY(copy, x, y){
 			T &val = copy(x, y);
@@ -290,25 +291,55 @@ public:
 		}
 		return copy;
 	}
+	/*Aplica la transformacion logarítimica a una imagen*/
+	template <class T> static inline cimg_library::CImg<T> logarithmicTransformation(cimg_library::CImg<T> &image, float r){
+#ifdef _DEBUG
+		static std::string callFrom("logarithmicTransformation()");
+		std::stringstream ss;
+		ss << "image:";
+#endif
+			cimg_forXY(image, x, y){
+			float val = log(1.0f + float(image(x, y)));
+#ifdef _DEBUG
+			ss << val << ",";
+#endif
+			image(x, y) = T(val);
+		}
+#ifdef _DEBUG
+		TjpLogger::getInstance().log(callFrom, ss.str());
+#endif
+		return image;
+	}
+
+	template <class T> static inline cimg_library::CImg<T> powTransformation(cimg_library::CImg<T> &image, float exp){
+		cimg_forXY(image, x, y){
+			float val = float(image(x, y));
+			val = pow(val, exp);
+			if (val < 0.0f) val = 0.0f; // posible?, por las dudas lo dejo.
+			if (val > 255.0f) val = 255.0f;
+			image(x, y) = T(val);
+		}
+		return image;
+	}
 
 	/*Modifica una LUT*/
-	template <class T = unsigned char> static void alterLUT(std::vector<T> &LUT, const float gain = 1.0f, const float offset = 0.0f, T start = T(0), T end = T(255)){
+	template <class T = unsigned char> static void alterLUTLinear(std::vector<T> &LUT, const float gain = 1.0f, const float offset = 0.0f, T start = T(0), T end = T(255)){
 		if (start == end) return;
 		if (end < start) intercambia(start, end);
 		if (start < T(0)) start = T(0);
 		if (end > T(255)) end = T(255);
 		for (T x = start; x < end; ++x){
-			LUT[x] = linearTransform(x, gain, offset);
+			LUT[x] = linearTransformation(x, gain, offset);
 		}
 		//No se puede hacer el <= porque se pasa de rango al hacer 255+1 = 0
-		LUT[end] = linearTransform(end, gain, offset);
+		LUT[end] = linearTransformation(end, gain, offset);
 #ifdef _DEBUG
-			static std::string c("alterLut()");
-				std::stringstream ss;
-			for (auto i : LUT){
-				ss << int(i) << ", ";
-			}
-			TjpLogger::getInstance().log(c, ss.str());
+		static std::string c("alterLut()");
+		std::stringstream ss;
+		for (auto i : LUT){
+			ss << int(i) << ", ";
+		}
+		TjpLogger::getInstance().log(c, ss.str());
 #endif
 		//return LUT;
 	}
@@ -318,9 +349,9 @@ public:
 		if (end < start) intercambia(start, end);
 		if (start < T(0)) start = T(0);
 		if (end > T(255)) end = T(255);
-		int range = abs(end - start)+1;
+		int range = abs(end - start) + 1;
 		std::vector<T> result(range);
-		alterLUT(result, gain, offset, start, end);
+		alterLUTLinear(result, gain, offset, start, end);
 		return result;
 	}
 
@@ -352,7 +383,7 @@ public:
 	/*TODO add doc*/
 	template <class T = unsigned char> static inline void addRange(Punto<T> &valorActual, cimg_library::CImg<T> &image, std::vector<T> &LUT, cimg_library::CImg<T> &curve){
 		static std::set<Punto<T>> rangos = { Punto<T>(T(0), T(0)), Punto<T>(T(255), T(255)) }; // se crea una ves. Ojo, no es para nada thread safe.
-		
+
 		std::set<Punto<T>>::iterator rangoIterator = rangos.find(valorActual);
 
 		if (rangoIterator == rangos.end()){ // no tiene el valor -> modificar la curva
@@ -368,18 +399,18 @@ public:
 			const Punto<T> &valorSiguiente = *(++copiaMas);
 			/*Tengo que modificar la curva anterior y la siguiente al punto actual*/
 			/*Curva anterior, no confundir con el valor que tenia previamente, sino con la curva que esta antes.*/
-			float pendienteAnterior = calcularGanancia(valorAnterior, valorActual );
+			float pendienteAnterior = calcularGanancia(valorAnterior, valorActual);
 			float offsetAnterior = calcularOffset(valorAnterior, valorActual);
 			T x_anterior = const_cast<Punto<T>&>(valorAnterior).x();
-			T x_actual = const_cast<Punto<T>&>( valorActual).x();
-			if ( x_actual > x_anterior)
-				alterLUT(LUT, pendienteAnterior, offsetAnterior, x_anterior, x_actual);
+			T x_actual = const_cast<Punto<T>&>(valorActual).x();
+			if (x_actual > x_anterior)
+				alterLUTLinear(LUT, pendienteAnterior, offsetAnterior, x_anterior, x_actual);
 			/*Curva siguiente*/
 			float pendienteSiguiente = calcularGanancia(valorActual, valorSiguiente);
 			float offsetSiguiente = calcularOffset(valorActual, valorSiguiente);
 			T x_siguiente = const_cast<Punto<T>&>(valorSiguiente).x();
 			if (x_siguiente > ++x_actual)
-				alterLUT(LUT, pendienteSiguiente, offsetSiguiente, x_actual, x_siguiente);
+				alterLUTLinear(LUT, pendienteSiguiente, offsetSiguiente, x_actual, x_siguiente);
 
 			/*Segunda etapa, mapear de nuevo el LUT a la imagen. TODO: optimizar para que solo mapee los segmentos nuevos*/
 			image = mapLUT(image, LUT);
@@ -415,6 +446,118 @@ protected:
 		TjpLogger::getInstance().log(c, "Guardando imagen de curva");
 		image.save_bmp("click.bmp");
 #endif
+	}
+public:
+	/*Suma pixel a pixel el valor de la imagen derecha sobre el valor de la imagen izquierda. Nunca se sale de rango [0,255]*/
+	template<class T> static inline cimg_library::CImg<T> addImages(cimg_library::CImg<T> &leftSideImage, cimg_library::CImg<T> &rightSideImage){
+		cimg_library::CImg<T> result(leftSideImage); // se podria pasar por copia directamente, pero es para mantener el formato
+		cimg_library::CImg<T> rightCopy(rightSideImage);
+
+		if (result.width() != rightCopy.width() || result.height() != rightCopy.height()){
+			rightCopy.resize(result);
+		}
+
+		cimg_forXY(result, x, y){
+			float val = result(x, y);
+			val += rightCopy(x, y);
+			val /= 2;
+#ifdef _DEBUG
+			if (val > 255.0f || val < 0.0f){
+				TjpLogger::getInstance().log("addImages()", "Valor fuera de rango. Corregido");
+				val = val > 255.0f ? 255.0f : 0.0f;
+			}
+#endif
+			result(x, y) = T(redondea(val));
+		}
+		return result;
+	}
+
+	/*Resta pixel a pixel el valor de la imagen derecha sobre el valor de la imagen izquierda. Nunca se sale de rango [0,255]*/
+	template <class T> static inline cimg_library::CImg<T> substractImages(cimg_library::CImg<T> &leftSideImage, cimg_library::CImg<T> &rightSideImage){
+		return addImages(leftSideImage, -rightSideImage);
+	}
+
+	/*Multiplica pixel a pixel el valor de la imagen derecha sobre el valor de la imagen izquierda. Nunca se sale de rango [0,255]*/
+	template <class T> static inline cimg_library::CImg<T> multiplyImages(cimg_library::CImg<T> &leftSideImage, cimg_library::CImg<T> &rightSideImage){
+		cimg_library::CImg<T> result(leftSideImage); // se podria pasar por copia directamente, pero es para mantener el formato
+		cimg_library::CImg<T> rightCopy(rightSideImage);
+
+		if (result.width() != rightCopy.width() || result.height() != rightCopy.height()){
+			rightCopy.resize(result);
+		}
+
+		cimg_forXY(result, x, y){
+			float val = result(x, y);
+			val *= rightCopy(x, y);
+			val /= 255.0f; //normalization
+#ifdef _DEBUG
+			if (val > 255.0f || val < 0.0f){
+				TjpLogger::getInstance().log("multiplyImages()", "Valor fuera de rango. Corregido");
+				val = val > 255.0f ? 255.0f : 0.0f;
+			}
+#endif
+			result(x, y) = T(redondea(val));
+		}
+		return result;
+	}
+
+	/*Multiplica la inversa de la segunda imagen (derecha) sobre la primera (izquierda).*/
+	template <class T> static inline cimg_library::CImg<T> divideImages(cimg_library::CImg<T> &leftSideImage, cimg_library::CImg<T> &rightSideImage){
+		//cimg_library::CImg<T> result(leftSideImage); // se podria pasar por copia directamente, pero es para mantener el formato
+		cimg_library::CImg<T> rightCopy(rightSideImage);
+
+		if (leftSideImage.width() != rightCopy.width() || leftSideImage.height() != rightCopy.height()){
+			rightCopy.resize(leftSideImage);
+		}
+
+		std::vector<unsigned char> LUT = createLut255(-1.0f, 255.0f); //r = -1*s-255 : inversa.
+		mapLUT(rightCopy, LUT);
+		return multiplyImages(leftSideImage, rightCopy);
+	}
+
+	template <class T> static inline cimg_library::CImg<T> toBinary(cimg_library::CImg<T> &image){
+		cimg_library::CImg<T> copy(image);
+		cimg_forXY(copy, x, y){
+			copy(x, y) = copy(x, y) > T(127) ? T(1) : T(0);
+		}
+		return copy;
+	}
+
+	/*Agrega ruido de distribución normal, con media = mean y desviación = deviation*/
+	template <class T> static inline cimg_library::CImg<T> addNoise(cimg_library::CImg<T> &image, float mean, float deviation) {
+		std::default_random_engine generator;
+		std::normal_distribution<float> distribution(mean, deviation);
+		cimg_library::CImg<float> noiseMap(image.width(), image.height(), 1, 1, 0.0f);
+		cimg_forXY(noiseMap, x, y){
+			float noise = distribution(generator) + float(image(x,y));
+			if (noise < 0.0f) noise = 0.0f;
+			if (noise > 255.0f) noise = 255.0f;
+			noiseMap(x, y) = noise - image(x,y);
+		}
+		cimg_library::CImg<T> copy(image);
+		cimg_forXY(copy, x, y){
+			copy(x, y) = copy(x, y) + T(noiseMap(x, y));
+		}
+		return copy;
+	}
+
+	/*TODO add doc, supone que todas la imagenes tienen el mismo tamaño*/
+	template <class T> static inline cimg_library::CImg<T> reduceNoise(std::vector<cimg_library::CImg<T> > &images) {
+		int width = images.begin()->width();
+		int height = images.begin()->height();
+		cimg_library::CImg<double> sum(width, height, 1, 1, 0.0 );
+		if (images.size() > 0){
+
+			for (auto &image : images){
+				sum += image;
+			}
+
+			sum /= images.size();
+#ifdef _DEBUG
+			sum.save_bmp("sum.bmp");
+#endif
+		}
+		return cimg_library::CImg<T>(sum);
 	}
 
 };
