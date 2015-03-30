@@ -271,16 +271,15 @@ void ejercicio_6(){
 	CImg<unsigned char> huang2("img/huang2.jpg");
 	CImgList<unsigned char> huangs;
 	huangs.push_back(huang2);
-	int quantize = 8;
-	huangs.push_back(huang2.get_quantize(quantize--));
-	huangs.push_back(huang2.get_quantize(quantize--));
-	huangs.push_back(huang2.get_quantize(quantize--));
-	huangs.push_back(huang2.get_quantize(quantize--));
-	huangs.push_back(huang2.get_quantize(quantize--));
-	huangs.push_back(huang2.get_quantize(quantize--));
-	huangs.push_back(huang2.get_quantize(quantize--));
-	huangs.push_back(huang2.get_quantize(quantize--));
-	
+	int quantize = 256;
+	huangs.push_back(huang2.get_quantize(quantize/=2));
+	huangs.push_back(huang2.get_quantize(quantize/=2));
+	huangs.push_back(huang2.get_quantize(quantize/=2));
+	huangs.push_back(huang2.get_quantize(quantize/=2));
+	huangs.push_back(huang2.get_quantize(quantize/=2));
+	huangs.push_back(huang2.get_quantize(quantize/=2));
+	huangs.push_back(huang2.get_quantize(quantize/=2));
+
 	CImgDisplay display;
 	display.display(huangs);
 	CImgUtils::waitForWindow(display);
@@ -313,21 +312,27 @@ void ejercicio_8(){
 	unsigned char riseStart = 128;
 	unsigned char riseEnd = botellasRaw.max();
 	CImgUtils::transform(botellasRaw, riseStart, riseEnd);
-	botellasRaw.quantize(4, false); // 2 porque o esta llena o esta vacia.
+	botellasRaw.quantize(4, false); //0 = negro, 1, 2, 3 = blanco
 
-	auto d = CImgUtils::showImage(botellasRaw);
-	CImgUtils::waitForWindow(d);
+	//auto d = CImgUtils::showImage(botellasRaw);
+	//CImgUtils::waitForWindow(d);
 
 	/*x0, y0, x1, y1*/
 	unsigned nroBotella = 0;
 	while (nroBotella < 5){
-		botellas.push_back(botellasRaw.get_crop(posicionBotellas[nroBotella][0][0], posicionBotellas[nroBotella][1][0], posicionBotellas[nroBotella][0][1], posicionBotellas[nroBotella][1][1]));
+		botellas.push_back(botellasRaw.get_crop(posicionBotellas[nroBotella][0][0],
+			posicionBotellas[nroBotella][1][0],
+			posicionBotellas[nroBotella][0][1],
+			posicionBotellas[nroBotella][1][1]));
 		nroBotella++;
 	}
 	
+	float lessLoadedPercent = 100.0f;
+	int lessLoadedIndex = -1;
 	for (unsigned i = 0; i < nroBotella; ++i){
 		CImg<unsigned char> &image = botellas[i];
-		int x_pos = image._width/4;
+		
+		int x_pos = image._width/2;
 		
 		int y_lleno = 0;
 		for (int y = image.height()-1; y >= 0; --y) {
@@ -340,21 +345,60 @@ void ejercicio_8(){
 
 		//hardcoded:
 		float loadedPercent = float(183-y_lleno)*100.0f / 183.0f;
+		if (loadedPercent < lessLoadedPercent){
+			lessLoadedPercent = loadedPercent;
+			lessLoadedIndex = i;
+		}
 		std::stringstream ss;
 		ss << "Botella nº:" << i + 1 << "\t% llena: " << loadedPercent;
 		TjpLogger::getInstance().log(std::string("ejercicio_8()\t"), ss.str());
 	}
+	std::stringstream ss;
+	ss << "Botella menos llena: " << lessLoadedIndex + 1 << " Porcentaje de llenado: " << lessLoadedPercent << "%";
+	TjpLogger::getInstance().log(std::string("ejercicio_8()\t"), ss.str());
 
 }
 
 int _tmain(int argc, _TCHAR* argv[])
 {
-	//ejercicio_1();
-	//ejercicio_2();
-	//ejercicio_3();
-	//ejercicio_4();
-	//ejercicio_5();
-	//ejercicio_7();
-	ejercicio_8();
+	int ejercicio = -1;
+		std::cout << "GUIA DE EJERCICIOS NRO 1" << std::endl;
+	do{
+		std::cout << "Ingrese el numero de ejercicio [1-8], 0 = salir" << std::endl;
+		std::cin >> ejercicio;
+
+		while (ejercicio < 0 || ejercicio > 9){
+			std::cout << "Ejercicio incorrecto, ingrese un valor entre 1 y 8, 0 = salir"<<std::endl;
+			std::cin >> ejercicio;
+		}
+
+		switch (ejercicio){
+		case 1:
+			ejercicio_1();
+			break;
+		case 2:
+			ejercicio_2();
+			break;
+		case 3:
+			ejercicio_3();
+			break;
+		case 4:
+			ejercicio_4();
+			break;
+		case 5:
+			ejercicio_5();
+			break;
+		case 6:
+			ejercicio_6();
+			break;
+		case 7:
+			ejercicio_7();
+			break;
+		case 8:
+			ejercicio_8();
+			break;
+		}
+	} while (ejercicio != 0);
+	
 	return 0;
 }

@@ -11,8 +11,7 @@
 #include <tchar.h>
 
 #include "CImg.h"
-#include <list>
-#include <sstream>
-#include "CImgUtils.h"
+
+
 
 // TODO: reference additional headers your program requires here

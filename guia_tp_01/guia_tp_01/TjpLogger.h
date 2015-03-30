@@ -46,4 +46,8 @@ public:
 		fileStream.flush(); //para que escriba enseguida
 	}
 
+	template <class T> void log(char* callFrom, T &mensaje){
+		log(std::string(callFrom), mensaje);
+	}
+
 };
