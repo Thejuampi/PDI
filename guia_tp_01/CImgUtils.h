@@ -525,7 +525,7 @@ public:
 
 	/*Agrega ruido de distribución normal, con media = mean y desviación = deviation*/
 	template <class T> static inline cimg_library::CImg<T> addNoise(cimg_library::CImg<T> &image, float mean, float deviation) {
-		std::default_random_engine generator;
+		static std::default_random_engine generator;
 		std::normal_distribution<float> distribution(mean, deviation);
 		cimg_library::CImg<float> noiseMap(image.width(), image.height(), 1, 1, 0.0f);
 		cimg_forXY(noiseMap, x, y){
@@ -534,6 +534,7 @@ public:
 			if (noise > 255.0f) noise = 255.0f;
 			noiseMap(x, y) = noise - image(x,y);
 		}
+
 		cimg_library::CImg<T> copy(image);
 		cimg_forXY(copy, x, y){
 			copy(x, y) = copy(x, y) + T(noiseMap(x, y));
