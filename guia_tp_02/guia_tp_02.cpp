@@ -79,10 +79,21 @@ void ejercicio_3(){
 
 }
 
+/*Filtro Emboss*/
+void ejercicio_4(){
+	CImg<unsigned char> originalImage("../guia_tp_01/img/cameraman.tif");
+	CImg<unsigned char> embossFilterImage = CImgUtils::embossFilter(originalImage, 1, 1);
+
+	CImgDisplay displayOriginal = CImgUtils::showImage(originalImage, "Original");
+	CImgDisplay displayFiltered = CImgUtils::showImage(embossFilterImage, "Filtrada");
+	
+	CImgUtils::waitForWindow(displayOriginal);
+}
+
 int _tmain(int argc, _TCHAR* argv[])
 {
 	//ejercicio_1();
-	ejercicio_3();
+	ejercicio_4();
 
 	return 0;
 }

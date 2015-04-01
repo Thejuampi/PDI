@@ -460,13 +460,11 @@ public:
 		cimg_forXY(result, x, y){
 			float val = result(x, y);
 			val += rightCopy(x, y);
-			val /= 2;
-#ifdef _DEBUG
 			if (val > 255.0f || val < 0.0f){
 				TjpLogger::getInstance().log("addImages()", "Valor fuera de rango. Corregido");
-				val = val > 255.0f ? 255.0f : 0.0f;
+				val = val > 255.0f ? val-255.0f : 255.0f-val; // doy la vuelta.
 			}
-#endif
+			val /= 2;
 			result(x, y) = T(redondea(val));
 		}
 		return result;
@@ -474,7 +472,24 @@ public:
 
 	/*Resta pixel a pixel el valor de la imagen derecha sobre el valor de la imagen izquierda. Nunca se sale de rango [0,255]*/
 	template <class T> static inline cimg_library::CImg<T> substractImages(cimg_library::CImg<T> &leftSideImage, cimg_library::CImg<T> &rightSideImage){
-		return addImages(leftSideImage, -rightSideImage);
+		cimg_library::CImg<T> result(leftSideImage); // se podria pasar por copia directamente, pero es para mantener el formato
+		cimg_library::CImg<T> rightCopy(rightSideImage);
+
+		if (result.width() != rightCopy.width() || result.height() != rightCopy.height()){
+			rightCopy.resize(result);
+		}
+
+		cimg_forXY(result, x, y){
+			float val = result(x, y);
+			val -= rightCopy(x, y);
+			val /= 2;
+			if (val > 255.0f || val < 0.0f){
+				TjpLogger::getInstance().log("addImages()", "Valor fuera de rango. Corregido");
+				val = val > 255.0f ? val - 255.0f : 255.0 - val;
+			}
+			result(x, y) = T(redondea(val));
+		}
+		return result;
 	}
 
 	/*Multiplica pixel a pixel el valor de la imagen derecha sobre el valor de la imagen izquierda. Nunca se sale de rango [0,255]*/
@@ -559,6 +574,25 @@ public:
 #endif
 		}
 		return cimg_library::CImg<T>(sum);
+	}
+
+	template <class T> static inline cimg_library::CImg<T> moverImagen(cimg_library::CImg<T> &image, int deltaX = 1, int deltaY = 0){
+		cimg_library::CImg<T> &result = image.get_fill(0); // para que tenga el mismo tamaño
+
+		for (int x = deltaX; x < image.width(); ++x){
+			for (int y = deltaY; y < image.height(); ++y){
+				result(x, y) = image(x - deltaX, y - deltaY);
+			}
+		}
+
+		return result;
+	}
+
+	template <class T> static inline cimg_library::CImg<T> embossFilter(cimg_library::CImg<T> &image, int deltaX = 1, int deltaY = 0) {
+		std::vector<unsigned char> &LUT = createLut255(-1.0f, 255.0f);
+		cimg_library::CImg<T> semi_inverse = mapLUT(image, LUT);
+		semi_inverse = moverImagen(semi_inverse, deltaX, deltaY);
+		return addImages(image, semi_inverse);
 	}
 
 };
