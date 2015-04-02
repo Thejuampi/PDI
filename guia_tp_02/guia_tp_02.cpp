@@ -95,6 +95,7 @@ void ejercicio_5() {
 	unsigned char umbrales[nImages] = { 0 };
 	CImgDisplay displays[nImages];
 	CImg<unsigned char> images[nImages];
+	//Detemino los valores de los umbrales
 	for (int indx = 0; indx < nImages; ++indx){
 		umbrales[indx] = indx * (255 / nImages);
 		TjpLogger::getInstance().log("ejercicio_5() - Umbral Calculado: ", umbrales[indx]);
@@ -103,24 +104,32 @@ void ejercicio_5() {
 	CImg<unsigned char> originalImage("../guia_tp_01/img/cameraman.tif");
 
 	//solo por orden: (se puede hacer todo en el bucle de arriba.
+	//Binarizo las imagenes
 	for (int indx = 0; indx < nImages; ++indx) {
 		images[indx] = CImgUtils::toBinary(originalImage, umbrales[indx]);
 	}
-
+	//Las muestro
 	for (int indx = 0; indx < nImages; ++indx) {
 		displays[indx] = CImgUtils::showImage(images[indx]);
 	}
-	
+	//Espero que se cierre la ultima ventana.
 	CImgUtils::waitForWindow(displays[nImages - 1]);
 
 
 }
 
 void ejercicio_6(){
+	const unsigned nImages = 8;
 	CImg<unsigned char> originalImage("../guia_tp_01/img/cameraman.tif");
-	CImg<unsigned char> &imageBit = CImgUtils::toBit(originalImage, 7);
-	CImgDisplay &d = CImgUtils::showImage(imageBit);
-	CImgUtils::waitForWindow(d);
+	CImg<unsigned char> images[nImages];
+	CImgDisplay displays[nImages];
+	for (unsigned char indx = 0; indx < nImages; ++indx) {
+		images[indx] = CImgUtils::toBinary(CImgUtils::toBit(originalImage, indx), unsigned char((1 << indx) - 1));
+		displays[indx] = CImgUtils::showImage(images[indx]);
+	}
+	
+	CImgUtils::waitForWindow(displays[nImages - 1]);
+
 }
 
 void ejercicio_7(){
