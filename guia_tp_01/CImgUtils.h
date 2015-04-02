@@ -595,5 +595,18 @@ public:
 		semi_inverse = moverImagen(semi_inverse, deltaX, deltaY);
 		return addImages(image, semi_inverse);
 	}
+	/*
+	bit 7 => 1000 0000 = 128
+	bit 6 => 0100 0000 = 64
+	...
+	bit 0 = > 0000 0001 = 1
+	*/
+	template <class T> static inline cimg_library::CImg<T> toBit(cimg_library::CImg<T> &image, unsigned char bit = 0){
+		bit = bit % 8; // para que no se pase de largo.
+		cimg_library::CImg<T> &result = image.get_fill(0);
+		unsigned char mascara = (1 << bit);
+		result &= mascara;
+		return result;
+	}
 
 };

@@ -117,7 +117,10 @@ void ejercicio_5() {
 }
 
 void ejercicio_6(){
-
+	CImg<unsigned char> originalImage("../guia_tp_01/img/cameraman.tif");
+	CImg<unsigned char> &imageBit = CImgUtils::toBit(originalImage, 6);
+	CImgDisplay &d = CImgUtils::showImage(imageBit);
+	CImgUtils::waitForWindow(d);
 }
 
 void ejercicio_7(){
@@ -127,7 +130,7 @@ void ejercicio_7(){
 int _tmain(int argc, _TCHAR* argv[])
 {
 	//ejercicio_1();
-	ejercicio_5();
+	ejercicio_6();
 
 	return 0;
 }
