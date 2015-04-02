@@ -603,7 +603,7 @@ public:
 	*/
 	template <class T> static inline cimg_library::CImg<T> toBit(cimg_library::CImg<T> &image, unsigned char bit = 0){
 		bit = bit % 8; // para que no se pase de largo.
-		cimg_library::CImg<T> &result = image.get_fill(0);
+		cimg_library::CImg<T> result(image);
 		unsigned char mascara = (1 << bit);
 		result &= mascara;
 		return result;

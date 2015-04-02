@@ -118,7 +118,7 @@ void ejercicio_5() {
 
 void ejercicio_6(){
 	CImg<unsigned char> originalImage("../guia_tp_01/img/cameraman.tif");
-	CImg<unsigned char> &imageBit = CImgUtils::toBit(originalImage, 6);
+	CImg<unsigned char> &imageBit = CImgUtils::toBit(originalImage, 7);
 	CImgDisplay &d = CImgUtils::showImage(imageBit);
 	CImgUtils::waitForWindow(d);
 }
