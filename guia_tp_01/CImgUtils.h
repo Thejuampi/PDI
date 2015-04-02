@@ -530,16 +530,17 @@ public:
 		return multiplyImages(leftSideImage, rightCopy);
 	}
 
-	template <class T> static inline cimg_library::CImg<T> toBinary(cimg_library::CImg<T> &image){
+	/*Convierte una imagen en binaria a partir de un valor de umbral. No altera la imagen original*/
+	template <class T> static inline cimg_library::CImg<T> toBinary(const cimg_library::CImg<T> &image, T umbral = T(127), T min = T(0), T max = T(255)){
 		cimg_library::CImg<T> copy(image);
 		cimg_forXY(copy, x, y){
-			copy(x, y) = copy(x, y) > T(127) ? T(1) : T(0);
+			copy(x, y) = copy(x, y) > umbral ? max : min;
 		}
 		return copy;
 	}
 
-	/*Agrega ruido de distribución normal, con media = mean y desviación = deviation*/
-	template <class T> static inline cimg_library::CImg<T> addNoise(cimg_library::CImg<T> &image, float mean, float deviation) {
+	/*Agrega ruido de distribución normal, con media = mean y desviación = deviation, no altera la imagen original*/
+	template <class T> static inline cimg_library::CImg<T> addNoise(const cimg_library::CImg<T> &image, float mean, float deviation) {
 		static std::default_random_engine generator;
 		std::normal_distribution<float> distribution(mean, deviation);
 		cimg_library::CImg<float> noiseMap(image.width(), image.height(), 1, 1, 0.0f);

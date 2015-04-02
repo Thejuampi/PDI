@@ -90,10 +90,44 @@ void ejercicio_4(){
 	CImgUtils::waitForWindow(displayOriginal);
 }
 
+void ejercicio_5() {
+	const unsigned nImages = 8;
+	unsigned char umbrales[nImages] = { 0 };
+	CImgDisplay displays[nImages];
+	CImg<unsigned char> images[nImages];
+	for (int indx = 0; indx < nImages; ++indx){
+		umbrales[indx] = indx * (255 / nImages);
+		TjpLogger::getInstance().log("ejercicio_5() - Umbral Calculado: ", umbrales[indx]);
+	}
+	
+	CImg<unsigned char> originalImage("../guia_tp_01/img/cameraman.tif");
+
+	//solo por orden: (se puede hacer todo en el bucle de arriba.
+	for (int indx = 0; indx < nImages; ++indx) {
+		images[indx] = CImgUtils::toBinary(originalImage, umbrales[indx]);
+	}
+
+	for (int indx = 0; indx < nImages; ++indx) {
+		displays[indx] = CImgUtils::showImage(images[indx]);
+	}
+	
+	CImgUtils::waitForWindow(displays[nImages - 1]);
+
+
+}
+
+void ejercicio_6(){
+
+}
+
+void ejercicio_7(){
+
+}
+
 int _tmain(int argc, _TCHAR* argv[])
 {
 	//ejercicio_1();
-	ejercicio_4();
+	ejercicio_5();
 
 	return 0;
 }
