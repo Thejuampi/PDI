@@ -9,7 +9,7 @@ void ejercicio_1(){
 	static unsigned char color[] = { 255 };
 	std::vector<unsigned char> &LUT = CImgUtils::createLut255(); // por defecto, la identidad
 	
-	CImg<unsigned char> originalImage("../guia_tp_01/img/cameraman.tif");
+	CImg<unsigned char> originalImage("../guia_tp_01/img/earth.png");
 
 	CImg<unsigned char> curva = CImgUtils::new2DImageUchar(255, 255);
 	CImgDisplay ventanaCurva(255, 255, "Curva");
@@ -140,7 +140,7 @@ void ejercicio_6(){
 	for (unsigned i = 0; i < nImages; ++i) {
 		std::stringstream ss;
 		CImg<unsigned char> &masked = originalImage & (mask);
-		mask += (aux /= 2);
+		mask += (aux /= 2);// = 128+64+32+16+8+4+2+1
 		float mse = CImgUtils::meanSquaredError(originalImage, masked);
 		ss << "Cantidad de bits:" << i + 1 << " mse=" << mse;
 		log.log("meanSquaredError()", ss.str());
@@ -148,15 +148,21 @@ void ejercicio_6(){
 }
 
 void ejercicio_7(){
-	CImg<unsigned char> originalImage("../guia_tp_01/img/cameraman.tif");
-	CImgUtils::waitForWindow(CImgUtils::showImage(originalImage & (128+64)));
+	TjpLogger &log = TjpLogger::getInstance();
+	log.log("ejercicio_7() - ", "Item 1. Procesando imagen earth.bmp");
+	CImg<unsigned char> originalImage("../guia_tp_01/img/earth.png");
+	originalImage.log2().normalize(0, 255);
+
+	log.log("ejercicio_7() - ", "Item 1. Mostrando imagen procesada earth.bmp");
+	CImgUtils::showAndWaitImage(originalImage);
+
+
 }
 
 int _tmain(int argc, _TCHAR* argv[])
 {
-	//ejercicio_1();
-	ejercicio_6();
-
+	ejercicio_1();
+	//ejercicio_7();
 	return 0;
 }
 

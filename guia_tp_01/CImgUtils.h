@@ -292,22 +292,11 @@ public:
 		return copy;
 	}
 	/*Aplica la transformacion logarítimica a una imagen*/
-	template <class T> static inline cimg_library::CImg<T> logarithmicTransformation(cimg_library::CImg<T> &image, float r){
-#ifdef _DEBUG
-		static std::string callFrom("logarithmicTransformation()");
-		std::stringstream ss;
-		ss << "image:";
-#endif
+	template <class T> static inline cimg_library::CImg<T> logarithmicTransformation(cimg_library::CImg<T> &image, float r = 0.0f){
 			cimg_forXY(image, x, y){
-			float val = log(1.0f + float(image(x, y)));
-#ifdef _DEBUG
-			ss << val << ",";
-#endif
+			float val = log(255.0f + float(image(x, y)));
 			image(x, y) = T(val);
 		}
-#ifdef _DEBUG
-		TjpLogger::getInstance().log(callFrom, ss.str());
-#endif
 		return image;
 	}
 
@@ -617,6 +606,10 @@ public:
 			mse += aux*aux;
 		}
 		return (mse/actual.size())/actual.spectrum();
+	}
+
+	template <class T> static inline void showAndWaitImage(cimg_library::CImg<T> &image){
+		CImgUtils::waitForWindow(CImgUtils::showImage(image));
 	}
 
 };
