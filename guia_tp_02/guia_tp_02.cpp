@@ -154,14 +154,52 @@ void ejercicio_7(){
 	originalImage.log2().normalize(0, 255);
 
 	log.log("ejercicio_7() - ", "Item 1. Mostrando imagen procesada earth.bmp");
-	CImgUtils::showAndWaitImage(originalImage);
+	CImgUtils::showImageAndWait(originalImage);
+	
 
+	//no se que item es: blisters
+	CImg<unsigned char> blisterCompleto("../guia_tp_01/img/blister_completo.jpg");
+	CImg<unsigned char> blisterIncompleto("../guia_tp_01/img/blister_incompleto.jpg");
+
+	CImg<unsigned char> mascara = CImgUtils::toBinary(blisterCompleto, unsigned char(100));
+	CImgUtils::showImageAndWait(mascara, "Máscara");
+
+	std::vector<std::pair<int,int>> puntosSuperiores;
+	std::vector<std::pair<int, int>> puntosInferiores;
+
+	std::stringstream ss;
+	for (int y = 0; y < mascara.height(); y+=2){
+		for (int x = 0; x < mascara.width(); x += 2){
+			if (mascara(x, y) == 255) { // identifico el primer pixel blanco de la mascara.
+				ss << "Punto superior izquierdo encontrado: x=" << x << " y=" << y;
+				log.log("ejercicio_7() : Blisters", ss.str());
+				ss.str(""); // limpio el buffer
+				puntosSuperiores.push_back(std::pair<int, int>(x, y));
+				for (int yy = y; yy < mascara.height(); ++yy) { // busco el limite inferior izquierdo del comprimido.
+					if (mascara(x, yy + 1) == 0) {
+						for (int xx = x; xx < mascara.width(); ++xx) { // busco el limite inferior derecho del comprimido.
+							if (mascara(xx + 1, yy) == 0){
+								ss << "Punto inferior derecho encontrado: x=" << xx << " y=" << yy;
+								log.log("ejercicio_7() : Blisters", ss.str());
+								ss.str(""); // limpio el buffer
+								puntosInferiores.push_back(std::pair<int, int>(xx, yy));
+								x = xx; y = yy; break;
+							}
+						}
+						break;
+					}
+				}
+			}
+		}
+	}
+
+	
 
 }
 
 int _tmain(int argc, _TCHAR* argv[])
 {
-	ejercicio_1();
+	ejercicio_7();
 	//ejercicio_7();
 	return 0;
 }

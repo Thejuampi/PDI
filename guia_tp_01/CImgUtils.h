@@ -608,8 +608,8 @@ public:
 		return (mse/actual.size())/actual.spectrum();
 	}
 
-	template <class T> static inline void showAndWaitImage(cimg_library::CImg<T> &image){
-		CImgUtils::waitForWindow(CImgUtils::showImage(image));
+	template <class T> static inline void showImageAndWait(cimg_library::CImg<T> &image, char* title = ""){
+		CImgUtils::waitForWindow(CImgUtils::showImage(image, title));
 	}
 
 };
