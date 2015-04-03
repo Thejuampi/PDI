@@ -12,7 +12,7 @@ private:
 		logCache.reserve(4096);
 	}
 	TjpLogger(TjpLogger &log){} // para mantener la compatibilidad con c++ prev 11
-	void operator=(TjpLogger &log){} //idem anterior
+	//void operator=(TjpLogger &log){} //idem anterior
 
 	/*Retorna un string con la fecha actual yyyy/MM/dd HH:MM:SS*/
 	std::string getCurrentDate(){

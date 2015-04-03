@@ -609,4 +609,14 @@ public:
 		return result;
 	}
 
+	template <class T> static inline float meanSquaredError(const cimg_library::CImg<T> &actual, const cimg_library::CImg<T> &aprox) {
+		cimg_library::CImg<T> aproxCorrected = aprox.size() == actual.size() ? aprox.get_resize(actual) : aprox;
+		float mse = 0.0;
+		cimg_forXY(actual, x, y) {
+			float aux = fabs(float(actual(x, y))-float(aproxCorrected(x, y)));
+			mse += aux*aux;
+		}
+		return (mse/actual.size())/actual.spectrum();
+	}
+
 };

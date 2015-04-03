@@ -130,10 +130,26 @@ void ejercicio_6(){
 	
 	CImgUtils::waitForWindow(displays[nImages - 1]);
 
+	//parte 2:
+	TjpLogger &log = TjpLogger::getInstance();
+	log.log("ejercicio_6()", "Comenzando parte 2");
+
+	std::vector<CImg<unsigned char>> imagenes;
+	imagenes.reserve(nImages);
+	int mask = 128, aux = 128;
+	for (unsigned i = 0; i < nImages; ++i) {
+		std::stringstream ss;
+		CImg<unsigned char> &masked = originalImage & (mask);
+		mask += (aux /= 2);
+		float mse = CImgUtils::meanSquaredError(originalImage, masked);
+		ss << "Cantidad de bits:" << i + 1 << " mse=" << mse;
+		log.log("meanSquaredError()", ss.str());
+	}
 }
 
 void ejercicio_7(){
-
+	CImg<unsigned char> originalImage("../guia_tp_01/img/cameraman.tif");
+	CImgUtils::waitForWindow(CImgUtils::showImage(originalImage & (128+64)));
 }
 
 int _tmain(int argc, _TCHAR* argv[])
