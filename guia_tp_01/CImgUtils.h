@@ -293,7 +293,7 @@ public:
 	}
 	/*Aplica la transformacion logarítimica a una imagen*/
 	template <class T> static inline cimg_library::CImg<T> logarithmicTransformation(cimg_library::CImg<T> &image, float r = 0.0f){
-			cimg_forXY(image, x, y){
+		cimg_forXY(image, x, y){
 			float val = log(255.0f + float(image(x, y)));
 			image(x, y) = T(val);
 		}
@@ -451,7 +451,7 @@ public:
 			val += rightCopy(x, y);
 			if (val > 255.0f || val < 0.0f){
 				TjpLogger::getInstance().log("addImages()", "Valor fuera de rango. Corregido");
-				val = val > 255.0f ? val-255.0f : 255.0f-val; // doy la vuelta.
+				val = val > 255.0f ? val - 255.0f : 255.0f - val; // doy la vuelta.
 			}
 			val /= 2;
 			result(x, y) = T(redondea(val));
@@ -534,10 +534,10 @@ public:
 		std::normal_distribution<float> distribution(mean, deviation);
 		cimg_library::CImg<float> noiseMap(image.width(), image.height(), 1, 1, 0.0f);
 		cimg_forXY(noiseMap, x, y){
-			float noise = distribution(generator) + float(image(x,y));
+			float noise = distribution(generator) + float(image(x, y));
 			if (noise < 0.0f) noise = 0.0f;
 			if (noise > 255.0f) noise = 255.0f;
-			noiseMap(x, y) = noise - image(x,y);
+			noiseMap(x, y) = noise - image(x, y);
 		}
 
 		cimg_library::CImg<T> copy(image);
@@ -551,7 +551,7 @@ public:
 	template <class T> static inline cimg_library::CImg<T> reduceNoise(std::vector<cimg_library::CImg<T> > &images) {
 		int width = images.begin()->width();
 		int height = images.begin()->height();
-		cimg_library::CImg<double> sum(width, height, 1, 1, 0.0 );
+		cimg_library::CImg<double> sum(width, height, 1, 1, 0.0);
 		if (images.size() > 0){
 
 			for (auto &image : images){
@@ -602,14 +602,33 @@ public:
 		cimg_library::CImg<T> aproxCorrected = aprox.size() == actual.size() ? aprox.get_resize(actual) : aprox;
 		float mse = 0.0;
 		cimg_forXY(actual, x, y) {
-			float aux = fabs(float(actual(x, y))-float(aproxCorrected(x, y)));
+			float aux = fabs(float(actual(x, y)) - float(aproxCorrected(x, y)));
 			mse += aux*aux;
 		}
-		return (mse/actual.size())/actual.spectrum();
+		return (mse / actual.size()) / actual.spectrum();
 	}
 
 	template <class T> static inline void showImageAndWait(cimg_library::CImg<T> &image, char* title = ""){
 		CImgUtils::waitForWindow(CImgUtils::showImage(image, title));
+	}
+
+	/*pasar por parametro los valores donde se quiere retornar el calculo*/
+	static void getCentroid(int x0, int y0, int x1, int y1, int &cx, int &cy) {
+		if (x0 > x1) intercambia(x0, x1);
+		if (y0 > y1) intercambia(y0, y1);
+		cx = x0 + (x1 - x0) / 2;
+		cy = y0 + (y1 - y0) / 2;
+	}
+
+	template < class T > static float getDistance(cimg_library::CImg<T> &left, cimg_library::CImg<T> &right) {
+		float result = 0.0f;
+
+		cimg_forXY(left, x, y){
+			float aux = left(x, y) - right(x, y);
+			result += aux*aux;
+		}
+
+		return result;
 	}
 
 };

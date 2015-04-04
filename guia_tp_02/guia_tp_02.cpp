@@ -8,7 +8,7 @@ using namespace cimg_library;
 void ejercicio_1(){
 	static unsigned char color[] = { 255 };
 	std::vector<unsigned char> &LUT = CImgUtils::createLut255(); // por defecto, la identidad
-	
+
 	CImg<unsigned char> originalImage("../guia_tp_01/img/earth.png");
 
 	CImg<unsigned char> curva = CImgUtils::new2DImageUchar(255, 255);
@@ -34,7 +34,7 @@ void ejercicio_1(){
 			ventanaCurva.wait();
 		}
 	}
-	
+
 }
 
 void ejercicio_2(){
@@ -86,7 +86,7 @@ void ejercicio_4(){
 
 	CImgDisplay displayOriginal = CImgUtils::showImage(originalImage, "Original");
 	CImgDisplay displayFiltered = CImgUtils::showImage(embossFilterImage, "Filtrada");
-	
+
 	CImgUtils::waitForWindow(displayOriginal);
 }
 
@@ -100,7 +100,7 @@ void ejercicio_5() {
 		umbrales[indx] = indx * (255 / nImages);
 		TjpLogger::getInstance().log("ejercicio_5() - Umbral Calculado: ", umbrales[indx]);
 	}
-	
+
 	CImg<unsigned char> originalImage("../guia_tp_01/img/cameraman.tif");
 
 	//solo por orden: (se puede hacer todo en el bucle de arriba.
@@ -127,7 +127,7 @@ void ejercicio_6(){
 		images[indx] = CImgUtils::toBinary(CImgUtils::toBit(originalImage, indx), unsigned char((1 << indx) - 1));
 		displays[indx] = CImgUtils::showImage(images[indx]);
 	}
-	
+
 	CImgUtils::waitForWindow(displays[nImages - 1]);
 
 	//parte 2:
@@ -147,7 +147,8 @@ void ejercicio_6(){
 	}
 }
 
-void ejercicio_7(){
+void ejercicio_7_1(){
+
 	TjpLogger &log = TjpLogger::getInstance();
 	log.log("ejercicio_7() - ", "Item 1. Procesando imagen earth.bmp");
 	CImg<unsigned char> originalImage("../guia_tp_01/img/earth.png");
@@ -155,51 +156,62 @@ void ejercicio_7(){
 
 	log.log("ejercicio_7() - ", "Item 1. Mostrando imagen procesada earth.bmp");
 	CImgUtils::showImageAndWait(originalImage);
-	
 
-	//no se que item es: blisters
+
+}
+
+void ejercicio_7_2(char *path) {
+	/*nComprimido, [x0,y0], [x1,y1]*/
+	TjpLogger &log = TjpLogger::getInstance();
+	static const int aa[10][2][2] = {
+		{ { 39, 40 }, { 39 + 29, 40 + 29 } }, //fila 0, col 0
+		{ { 88, 39 }, { 88 + 29, 39 + 28 } }, //fila 0, col 1
+		{ { 138, 40 }, { 138 + 29, 40 + 28 } }, // ...
+		{ { 188, 39 }, { 188 + 29, 39 + 28 } },
+		{ { 238, 37 }, { 238 + 29, 37 + 29 } },
+		{ { 39, 87 }, { 39 + 30, 87 + 28 } }, // ...
+		{ { 89, 87 }, { 89 + 29, 87 + 28 } },
+		{ { 139, 87 }, { 139 + 29, 87 + 27 } }, //..
+		{ { 188, 86 }, { 188 + 30, 86 + 27 } }, //fila 1, col 3
+		{ { 238, 85 }, { 238 + 29, 85 + 28 } } //fila 1, col 4
+	};
+	static unsigned char color[] = { 128 };
+	CImg<unsigned char> loadedImage(path);
 	CImg<unsigned char> blisterCompleto("../guia_tp_01/img/blister_completo.jpg");
 	CImg<unsigned char> blisterIncompleto("../guia_tp_01/img/blister_incompleto.jpg");
 
 	CImg<unsigned char> mascara = CImgUtils::toBinary(blisterCompleto, unsigned char(100));
-	CImgUtils::showImageAndWait(mascara, "Máscara");
-
-	std::vector<std::pair<int,int>> puntosSuperiores;
-	std::vector<std::pair<int, int>> puntosInferiores;
-
+	CImg < unsigned char> reference = CImgUtils::multiplyImages(blisterCompleto, mascara);
+	loadedImage = CImgUtils::multiplyImages(loadedImage, mascara);
 	std::stringstream ss;
-	for (int y = 0; y < mascara.height(); y+=2){
-		for (int x = 0; x < mascara.width(); x += 2){
-			if (mascara(x, y) == 255) { // identifico el primer pixel blanco de la mascara.
-				ss << "Punto superior izquierdo encontrado: x=" << x << " y=" << y;
-				log.log("ejercicio_7() : Blisters", ss.str());
-				ss.str(""); // limpio el buffer
-				puntosSuperiores.push_back(std::pair<int, int>(x, y));
-				for (int yy = y; yy < mascara.height(); ++yy) { // busco el limite inferior izquierdo del comprimido.
-					if (mascara(x, yy + 1) == 0) {
-						for (int xx = x; xx < mascara.width(); ++xx) { // busco el limite inferior derecho del comprimido.
-							if (mascara(xx + 1, yy) == 0){
-								ss << "Punto inferior derecho encontrado: x=" << xx << " y=" << yy;
-								log.log("ejercicio_7() : Blisters", ss.str());
-								ss.str(""); // limpio el buffer
-								puntosInferiores.push_back(std::pair<int, int>(xx, yy));
-								x = xx; y = yy; break;
-							}
-						}
-						break;
-					}
-				}
-			}
+	CImgDisplay display = CImgUtils::showImage(loadedImage);
+	for (int indx = 0; indx < 10; ++indx) {
+		const int &x0 = aa[indx][0][0],
+			&y0 = aa[indx][0][1],
+			&x1 = aa[indx][1][0],
+			&y1 = aa[indx][1][1];
+		CImg < unsigned char > &sub_completo = reference.get_crop(x0, y0, x1, y1);
+		CImg < unsigned char > &sub_loaded = loadedImage.get_crop(x0, y0, x1, y1);
+		float distance = CImgUtils::getDistance(sub_completo, sub_loaded);
+		if (distance > 0.1f){
+			ss.str(""); //limpio buffer;
+			int cx = 0, cy = 0;
+			CImgUtils::getCentroid(x0, y0, x1, y1, cx, cy);
+			ss << "Falta el comprimido x=" << cx << " y=" << cy;
+			log.log("ejercicio_7_2()", ss.str());
+			loadedImage.draw_circle(cx, cy, 14, color);
 		}
 	}
 
-	
-
+	CImgUtils::waitForWindow(display);
 }
+
+static unsigned char color[] = { 128 };
 
 int _tmain(int argc, _TCHAR* argv[])
 {
-	ejercicio_7();
+
+	ejercicio_7_2("../guia_tp_01/img/blister_incompleto.jpg");
 	//ejercicio_7();
 	return 0;
 }
