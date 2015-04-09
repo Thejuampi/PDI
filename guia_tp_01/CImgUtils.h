@@ -292,7 +292,7 @@ public:
 		return copy;
 	}
 	/*Aplica la transformacion logarítimica a una imagen*/
-	template <class T> static inline cimg_library::CImg<T> logarithmicTransformation(cimg_library::CImg<T> &image, float r = 0.0f){
+	template <class T> static inline cimg_library::CImg<T> logarithmicTransformation(cimg_library::CImg<T> &image){
 		cimg_library::CImg <float> floatImage(image);
 		floatImage.normalize(0.0f, 1.0f);
 		cimg_forXY(floatImage, x, y){
@@ -318,6 +318,39 @@ public:
 			image(x, y) = T(redondea(floatImage(x, y)));
 		}
 		return image;
+	}
+
+	template <class T> static inline cimg_library::CImg<T> XOR(cimg_library::CImg<T> &left, cimg_library::CImg<T> &right) {
+		cimg_library::CImg<T> &result = left.get_fill(0);
+		if (righ.size() != left.size()) {
+			right.resize(left);
+		}
+		cimg_forxy(result, x, y){
+			result(x, y) = (left(x, y) & 1) ^ (right(x, y) & 1) ? T(255), T(0);
+		}
+		return result;
+	}
+
+	template <class T> static inline cimg_library::CImg<T> AND(cimg_library::CImg<T> &left, cimg_library::CImg<T> &right) {
+		cimg_library::CImg<T> &result = left.get_fill(0);
+		if (righ.size() != left.size()) {
+			right.resize(left);
+		}
+		cimg_forxy(result, x, y){
+			result(x, y) = left(x, y) && right(x, y) ? T(255), T(0);
+		}
+		return result;
+	}
+
+	template <class T> static inline cimg_library::CImg<T> OR(cimg_library::CImg<T> &left, cimg_library::CImg<T> &right) {
+		cimg_library::CImg<T> &result = left.get_fill(0);
+		if (righ.size() != left.size()) {
+			right.resize(left);
+		}
+		cimg_forxy(result, x, y){
+			result(x, y) = left(x, y) || right(x, y) ? T(255), T(0);
+		}
+		return result;
 	}
 
 	/*Modifica una LUT*/

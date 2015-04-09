@@ -42,7 +42,7 @@ void ejercicio_2(){
 
 	CImg<unsigned char> powImage(originalImage);
 	CImg<unsigned char> logImage(originalImage);
-	CImgUtils::logarithmicTransformation(logImage, 1024.0f);
+	CImgUtils::logarithmicTransformation(logImage);
 	CImgUtils::powTransformation(powImage, 3.0f);
 	CImgList<unsigned char> imagesList;
 	imagesList.push_back(originalImage);
