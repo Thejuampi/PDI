@@ -293,20 +293,29 @@ public:
 	}
 	/*Aplica la transformacion logarítimica a una imagen*/
 	template <class T> static inline cimg_library::CImg<T> logarithmicTransformation(cimg_library::CImg<T> &image, float r = 0.0f){
-		cimg_forXY(image, x, y){
-			float val = log(255.0f + float(image(x, y)));
-			image(x, y) = T(val);
+		cimg_library::CImg <float> floatImage(image);
+		floatImage.normalize(0.0f, 1.0f);
+		cimg_forXY(floatImage, x, y){
+			floatImage(x, y) = log(floatImage(x, y) + 1.0f);
+		}
+		floatImage.normalize(0.0f, 255.0f);
+		/*image = floatImage;*/
+		cimg_forXY(floatImage, x, y){
+			image(x, y) = T(redondea(floatImage(x, y)));
 		}
 		return image;
 	}
 
 	template <class T> static inline cimg_library::CImg<T> powTransformation(cimg_library::CImg<T> &image, float exp){
-		cimg_forXY(image, x, y){
-			float val = float(image(x, y));
-			val = pow(val, exp);
-			if (val < 0.0f) val = 0.0f; // posible?, por las dudas lo dejo.
-			if (val > 255.0f) val = 255.0f;
-			image(x, y) = T(val);
+		cimg_library::CImg <float> floatImage(image);
+		floatImage.normalize(0.0f, 1.0f);
+		cimg_forXY(floatImage, x, y){
+			floatImage(x, y) = pow(floatImage(x, y), exp);
+		}
+		floatImage.normalize(0.0f, 255.0f);
+		/*image = floatImage;*/
+		cimg_forXY(floatImage, x, y){
+			image(x, y) = T(redondea(floatImage(x, y)));
 		}
 		return image;
 	}
@@ -624,7 +633,7 @@ public:
 		float result = 0.0f;
 
 		cimg_forXY(left, x, y){
-			float aux = left(x, y) - right(x, y);
+			float aux = float(left(x, y)) - float(right(x, y));
 			result += aux*aux;
 		}
 

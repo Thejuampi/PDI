@@ -4,7 +4,7 @@
 //
 
 #pragma once
-
+#define cimg_use_openmp
 #include "targetver.h"
 
 #include <stdio.h>

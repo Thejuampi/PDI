@@ -210,9 +210,8 @@ static unsigned char color[] = { 128 };
 
 int _tmain(int argc, _TCHAR* argv[])
 {
-
-	ejercicio_7_2("../guia_tp_01/img/blister_incompleto.jpg");
-	//ejercicio_7();
+	//ejercicio_7_2("../guia_tp_01/img/blister_incompleto.jpg");
+	ejercicio_2();
 	return 0;
 }
 
