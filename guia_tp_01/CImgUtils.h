@@ -87,6 +87,14 @@ public:
 		T t0 = t1; t1 = t2; t2 = t0;
 	} // cambia el contenido y no la direccion (lento pero seguro)
 
+	template <class T> static inline T min(cimg_library::CImg<T> &image){
+		T minimo = T(255);
+		cimg_forXY(image, x, y){
+			if (image(x, y) < minimo) minimo = (image(x, y));
+		}
+		return minimo;
+	}
+
 	template <class T> static inline cimg_library::CImg<T> new2DImage(unsigned int width, unsigned int height, unsigned spectrum){
 		return cimg_library::CImg<T>(width, height, 1, spectrum, T(0));
 	}

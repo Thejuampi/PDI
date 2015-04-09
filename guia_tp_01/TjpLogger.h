@@ -42,7 +42,7 @@ public:
 
 	template <class T> void log(std::string &callFrom, T &mensaje){
 		std::string &currentDate = getCurrentDate();
-		fileStream << currentDate << " " << callFrom << " " << mensaje<<std::endl;
+		fileStream << currentDate << " " << callFrom << " " << mensaje << std::endl;
 		fileStream.flush(); //para que escriba enseguida
 	}
 
@@ -50,4 +50,7 @@ public:
 		log(std::string(callFrom), mensaje);
 	}
 
+	template <class T> void log(const char* callFrom, T &mensaje){
+		log(std::string(callFrom), mensaje);
+	}
 };
