@@ -543,7 +543,7 @@ public:
 		cimg_forXY(result, x, y){
 			float val = result(x, y);
 			val *= rightCopy(x, y);
-			val /= 255.0f; //normalization
+			//val /= 255.0f; //normalization
 #ifdef _DEBUG
 			if (val > 255.0f || val < 0.0f){
 				TjpLogger::getInstance().log("multiplyImages()", "Valor fuera de rango. Corregido");
@@ -680,5 +680,25 @@ public:
 
 		return result;
 	}
+#define M_PI 3.14159265358979323846f
+
+	template<typename T>
+	static inline cimg_library::CImg<T> gaussFilter(T sigma = T(1.0f), T deriv = T(0)) {
+		T width = 3 * sigma;               // may be less width?
+		T sigma2 = sigma*sigma;
+		cimg_library::CImg<T> filter;
+		filter.assign(int(2 * width) + 1);
+
+		T i = 0;
+		for (T x = -width; x <= width; x += 1.0f) {
+			T g = T(exp(-0.5*x*x / sigma2)) / sqrt(2 * M_PI) / sigma;
+			if (deriv == 1) g *= -x / sigma2;
+			if (deriv == 2) g *= (x*x / sigma2 - 1.0f) / sigma2;
+			filter(i) = T(g);
+			i++;
+		}
+		return filter;
+	}
+
 
 };
