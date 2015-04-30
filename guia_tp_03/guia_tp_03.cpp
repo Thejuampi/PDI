@@ -85,9 +85,18 @@ void ejercicio_3_1(){
 	CImgUtils::showImageAndWait(imagenFiltrada);
 }
 
+void ejercicio_4_1(){
+	CImg<float> mascaraDifusa(3, 3, 1, 1, 1.0f / 9.0f);
+	CImg<float> imagen("../guia_tp_01/img/cameraman.tif");
+	CImg<float> &imagenDifusa = imagen.get_convolve(mascaraDifusa);
+	CImg<float> &imagenMejorada = 3.0f*imagen - imagenDifusa;
+
+	imagenMejorada.display();
+}
+
 int _tmain(int argc, _TCHAR* argv[])
 {
-	ejercicio_3_1();
+	ejercicio_4_1();
 	return 0;
 }
 
