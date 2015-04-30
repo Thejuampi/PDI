@@ -56,7 +56,7 @@ void ejercicio_2_2() {
 }
 
 void ejercicio_2_3() {
-	CImg<float> mascara7x7(5,5, 1, 1, 1.0f / 9.0f);
+	CImg<float> mascara7x7(7,7, 1, 1, 1.0f / 9.0f);
 	CImg < float > imagenOriginal("../guia_tp_01/img/hubble.tif");
 
 	auto &imagenFiltrada = imagenOriginal.get_convolve(mascara7x7);
@@ -72,17 +72,17 @@ void ejercicio_2_3() {
 }
 
 void ejercicio_3_1(){
-	CImg<float> filtroPasaAltaSuma1(3, 3, 1, 1,
-		 0.0f, -1.0f,  0.0f,
-		-1.0f,  5.0f, -1.0f,
-		 0.0f, -1.0f,  0.0f
+	CImg<float> filtroPasaAlto(3, 3, 1, 1,
+		 -0.0f, -1.0f,  -0.0f,
+		 -1.0f,  8.0f, -1.0f,
+		 -0.0f, -1.0f,  -0.0f
 		);
-	//filtroPasaAltaSuma1 *= 1.0f / 6.0f;
-	CImg < float > imagenOriginal("../guia_tp_01/img/hubble.tif");
-
-	auto imageFiltrada = imagenOriginal.convolve(filtroPasaAltaSuma1);
-	imageFiltrada.normalize(0.0f, 255.0f);
-	imageFiltrada.display();
+	CImg < float > imagenOriginal("../guia_tp_01/img/cameraman.tif");
+	int alto = imagenOriginal.height();
+	int ancho = imagenOriginal.width();
+	auto imagenFiltrada = imagenOriginal.get_convolve(filtroPasaAlto);
+	//imagenFiltrada = (imagenFiltrada*0.1) + (imagenOriginal*0.9);
+	CImgUtils::showImageAndWait(imagenFiltrada);
 }
 
 int _tmain(int argc, _TCHAR* argv[])
