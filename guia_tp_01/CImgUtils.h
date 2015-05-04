@@ -11,6 +11,8 @@
 #include "CImg.h"
 #include "TjpLogger.h"
 
+using namespace cimg_library;
+
 template <class T = unsigned char> class Punto{
 private:
 	T _x;
@@ -87,7 +89,7 @@ public:
 		T t0 = t1; t1 = t2; t2 = t0;
 	} // cambia el contenido y no la direccion (lento pero seguro)
 
-	template <class T> static inline T min(cimg_library::CImg<T> &image){
+	template <class T> static inline T min(CImg<T> &image){
 		T minimo = T(255);
 		cimg_forXY(image, x, y){
 			if (image(x, y) < minimo) minimo = (image(x, y));
@@ -95,11 +97,11 @@ public:
 		return minimo;
 	}
 
-	template <class T> static inline cimg_library::CImg<T> new2DImage(unsigned int width, unsigned int height, unsigned spectrum){
-		return cimg_library::CImg<T>(width, height, 1, spectrum, T(0));
+	template <class T> static inline CImg<T> new2DImage(unsigned int width, unsigned int height, unsigned spectrum){
+		return CImg<T>(width, height, 1, spectrum, T(0));
 	}
 
-	static inline cimg_library::CImg<unsigned char> new2DImageUchar(unsigned int width, unsigned int height){
+	static inline CImg<unsigned char> new2DImageUchar(unsigned int width, unsigned int height){
 		return new2DImage<unsigned char>(width, height, 1);
 	}
 
@@ -150,23 +152,23 @@ public:
 	}
 
 	/*Deja una ventana ociosa a la espera de un evento. Sirve principalmente para que no se cierre.*/
-	static inline void waitForWindow(cimg_library::CImgDisplay &imagen){
+	static inline void waitForWindow(CImgDisplay &imagen){
 		static std::string callFrom("waitForWindow()");
 		TjpLogger::getInstance().log(callFrom, "Esperando Evento...");
 		while (!imagen.is_closed()) { imagen.wait(); }
 	}
 
 	/*Crea una CImg y le dibuja un círculo en el medio*/
-	static cimg_library::CImg<unsigned char> drawCircle(int width, int height, int circleRadius){
+	static CImg<unsigned char> drawCircle(int width, int height, int circleRadius){
 		static unsigned char white[] = { 255 };
-		cimg_library::CImg<unsigned char> image(width, height, 1, 1, 0);
+		CImg<unsigned char> image(width, height, 1, 1, 0);
 		image.draw_circle(width / 2, height / 2, circleRadius, white);
 		return image;
 	}
 
 	/*Reduce el tamaño de la imagen a la mitad. Descarta pixeles intermedios*/
-	template <class T = unsigned char> static inline cimg_library::CImg<T> subSampleBy2(cimg_library::CImg<T> &image) {
-		cimg_library::CImg<T> subsampled(image.width() / 2, image.height() / 2, image.depth(), image.spectrum(), 0);
+	template <class T = unsigned char> static inline CImg<T> subSampleBy2(CImg<T> &image) {
+		CImg<T> subsampled(image.width() / 2, image.height() / 2, image.depth(), image.spectrum(), 0);
 		for (int x = 0; x < image.width(); x += 2){
 			for (int y = 0; y < image.height(); y += 2){
 				subsampled(x / 2, y / 2) = image(x, y);
@@ -175,7 +177,7 @@ public:
 		return subsampled;
 	}
 	/*Reemplaza una sub region de la imagen por otra. Ojo que no chequea limites*/
-	template <class T> static inline void replaceSubRegion(cimg_library::CImg<T> &destiny, cimg_library::CImg<T> &source, int x_from, int y_from) {
+	template <class T> static inline void replaceSubRegion(CImg<T> &destiny, CImg<T> &source, int x_from, int y_from) {
 		for (int x = x_from; x < min(source.width() + x_from, destiny.width()); ++x){
 			for (int y = y_from; y < min(source.height() + y_from, destiny.height()); ++y){
 				destiny(x, y) = source(x - x_from, y - y_from);
@@ -184,49 +186,49 @@ public:
 	}
 
 	/*Crea una imagen de medios tonos. No modifica la original*/
-	template<class T> static cimg_library::CImg<T> halfToning(cimg_library::CImg<T> &imagen){
-		cimg_library::CImg<T> &halfToned = imagen.get_resize(imagen._width / 3, imagen._height / 3);
+	template<class T> static CImg<T> halfToning(CImg<T> &imagen){
+		CImg<T> &halfToned = imagen.get_resize(imagen._width / 3, imagen._height / 3);
 		//transform(imagen, T(100), T(200));
 		imagen.log();
 		halfToned.quantize(10, false);
-		std::map<T, cimg_library::CImg<T>> mapa;
-		cimg_library::CImg<T> img(3, 3, 1, 1, 0);
+		std::map<T, CImg<T>> mapa;
+		CImg<T> img(3, 3, 1, 1, 0);
 
-		mapa.insert(std::pair<T, cimg_library::CImg<T>>(T(0), img));
+		mapa.insert(std::pair<T, CImg<T>>(T(0), img));
 
 		img(1, 0) = T(255);
-		mapa.insert(std::pair<T, cimg_library::CImg<T>>(T(1), img));
+		mapa.insert(std::pair<T, CImg<T>>(T(1), img));
 
 		img(2, 2) = T(255);
-		mapa.insert(std::pair<T, cimg_library::CImg<T>>(T(2), img));
+		mapa.insert(std::pair<T, CImg<T>>(T(2), img));
 
 		img(0, 0) = T(255);
-		mapa.insert(std::pair<T, cimg_library::CImg<T>>(T(3), img));
+		mapa.insert(std::pair<T, CImg<T>>(T(3), img));
 
 		img(0, 2) = T(255);
-		mapa.insert(std::pair<T, cimg_library::CImg<T>>(T(4), img));
+		mapa.insert(std::pair<T, CImg<T>>(T(4), img));
 
 		img(2, 0) = T(255);
-		mapa.insert(std::pair<T, cimg_library::CImg<T>>(T(5), img));
+		mapa.insert(std::pair<T, CImg<T>>(T(5), img));
 
 		img(2, 1) = T(255);
-		mapa.insert(std::pair<T, cimg_library::CImg<T>>(T(6), img));
+		mapa.insert(std::pair<T, CImg<T>>(T(6), img));
 
 		img(1, 2) = T(255);
-		mapa.insert(std::pair<T, cimg_library::CImg<T>>(T(7), img));
+		mapa.insert(std::pair<T, CImg<T>>(T(7), img));
 
 		img(0, 2) = T(255);
-		mapa.insert(std::pair<T, cimg_library::CImg<T>>(T(8), img));
+		mapa.insert(std::pair<T, CImg<T>>(T(8), img));
 
 		img(0, 2) = T(255);
-		mapa.insert(std::pair<T, cimg_library::CImg<T>>(T(9), img));
+		mapa.insert(std::pair<T, CImg<T>>(T(9), img));
 
 		halfToned.resize(imagen.width(), imagen.height());
 
 		for (int x = 0; x < halfToned.width(); x += 3){
 			for (int y = 0; y < halfToned.height(); y += 3){
 				T &key = halfToned(x, y);
-				cimg_library::CImg<T> &value = mapa.at(key);
+				CImg<T> &value = mapa.at(key);
 				replaceSubRegion(halfToned, value, x, y);
 			}
 		}
@@ -242,12 +244,12 @@ public:
 	}
 
 	/*NO USAR*/
-	template <class T> cimg_library::CImg<T> brightness(cimg_library::CImg<T> &image, float scale){
+	template <class T> CImg<T> brightness(CImg<T> &image, float scale){
 		return image * scale;
 	}
 
 	/*Transforma una imagen, a partir de un valor de inicio (aplica 0 hasta dicho valor) y un valor final(todo lo superior va a 255)*/
-	template <class T> static void transform(cimg_library::CImg<T> &image, T riseStart, T riseEnd){
+	template <class T> static void transform(CImg<T> &image, T riseStart, T riseEnd){
 		if (riseEnd < riseStart){
 			throw std::logic_error("Error: riseEnd < riseStart");
 		}
@@ -268,8 +270,8 @@ public:
 	}
 
 	/*Crea una ventana y muestra la imagen que se pasa como parametro. EL titulo es opcional. Retorna la ventana*/
-	template <class T> static cimg_library::CImgDisplay showImage(cimg_library::CImg<T> &image, const char* title = ""){
-		cimg_library::CImgDisplay display;
+	template <class T> static CImgDisplay showImage(CImg<T> &image, const char* title = ""){
+		CImgDisplay display;
 		display.display(image);
 		display.set_title(title);
 		return display;
@@ -287,8 +289,8 @@ public:
 	}
 
 	/*Transforma linealmente una imagen. No modifica la imagen original*/
-	template <class T> static cimg_library::CImg<T> linearTransformation(cimg_library::CImg<T> &source, float gain = 1.0f, float offset = 0.0f){
-		cimg_library::CImg<T> copy = source; //copia?
+	template <class T> static CImg<T> linearTransformation(CImg<T> &source, float gain = 1.0f, float offset = 0.0f){
+		CImg<T> copy = source; //copia?
 		cimg_forXY(copy, x, y){
 			T &val = copy(x, y);
 			float fVal = float(val);
@@ -300,8 +302,8 @@ public:
 		return copy;
 	}
 	/*Aplica la transformacion logarítimica a una imagen*/
-	template <class T> static inline cimg_library::CImg<T> logarithmicTransformation(cimg_library::CImg<T> &image){
-		cimg_library::CImg <float> floatImage(image);
+	template <class T> static inline CImg<T> logarithmicTransformation(CImg<T> &image){
+		CImg <float> floatImage(image);
 		floatImage.normalize(0.0f, 1.0f);
 		cimg_forXY(floatImage, x, y){
 			floatImage(x, y) = log(floatImage(x, y) + 1.0f);
@@ -314,8 +316,8 @@ public:
 		return image;
 	}
 
-	template <class T> static inline cimg_library::CImg<T> powTransformation(cimg_library::CImg<T> &image, float exp){
-		cimg_library::CImg <float> floatImage(image);
+	template <class T> static inline CImg<T> powTransformation(CImg<T> &image, float exp){
+		CImg <float> floatImage(image);
 		floatImage.normalize(0.0f, 1.0f);
 		cimg_forXY(floatImage, x, y){
 			floatImage(x, y) = pow(floatImage(x, y), exp);
@@ -328,8 +330,8 @@ public:
 		return image;
 	}
 
-	template <class T> static inline cimg_library::CImg<T> XOR(cimg_library::CImg<T> &left, cimg_library::CImg<T> &right) {
-		cimg_library::CImg<T> &result = left.get_fill(0);
+	template <class T> static inline CImg<T> XOR(CImg<T> &left, CImg<T> &right) {
+		CImg<T> &result = left.get_fill(0);
 		if (righ.size() != left.size()) {
 			right.resize(left);
 		}
@@ -339,8 +341,8 @@ public:
 		return result;
 	}
 
-	template <class T> static inline cimg_library::CImg<T> AND(cimg_library::CImg<T> &left, cimg_library::CImg<T> &right) {
-		cimg_library::CImg<T> &result = left.get_fill(0);
+	template <class T> static inline CImg<T> AND(CImg<T> &left, CImg<T> &right) {
+		CImg<T> &result = left.get_fill(0);
 		if (righ.size() != left.size()) {
 			right.resize(left);
 		}
@@ -350,8 +352,8 @@ public:
 		return result;
 	}
 
-	template <class T> static inline cimg_library::CImg<T> OR(cimg_library::CImg<T> &left, cimg_library::CImg<T> &right) {
-		cimg_library::CImg<T> &result = left.get_fill(0);
+	template <class T> static inline CImg<T> OR(CImg<T> &left, CImg<T> &right) {
+		CImg<T> &result = left.get_fill(0);
 		if (righ.size() != left.size()) {
 			right.resize(left);
 		}
@@ -395,7 +397,7 @@ public:
 	}
 
 	/*Mapea una LUT sobre una imagen y retorna la imagen resultante. No altera la imagen Original*/
-	template <class T = unsigned char> static inline cimg_library::CImg<T> mapLUT(cimg_library::CImg<T> &source, std::vector<T> &LUT) {
+	template <class T = unsigned char> static inline CImg<T> mapLUT(CImg<T> &source, std::vector<T> &LUT) {
 		CImg<T> copy = source;
 		cimg_forXY(source, x, y){
 			T &val = copy(x, y);
@@ -420,7 +422,7 @@ public:
 		return offset;
 	}
 	/*TODO add doc*/
-	template <class T = unsigned char> static inline void addRange(Punto<T> &valorActual, cimg_library::CImg<T> &image, std::vector<T> &LUT, cimg_library::CImg<T> &curve){
+	template <class T = unsigned char> static inline void addRange(Punto<T> &valorActual, CImg<T> &image, std::vector<T> &LUT, CImg<T> &curve){
 		static std::set<Punto<T>> rangos = { Punto<T>(T(0), T(0)), Punto<T>(T(255), T(255)) }; // se crea una ves. Ojo, no es para nada thread safe.
 
 		std::set<Punto<T>>::iterator rangoIterator = rangos.find(valorActual);
@@ -463,7 +465,7 @@ public:
 	}
 
 protected:
-	template <class T> static inline void redrawCurve(std::set<Punto<T>> &rangos, cimg_library::CImg<T> &image) {
+	template <class T> static inline void redrawCurve(std::set<Punto<T>> &rangos, CImg<T> &image) {
 		static unsigned char color[] = { 255 };
 		image.fill(T(0));
 		std::set<Punto<T>>::iterator actualPoint = rangos.begin();
@@ -488,9 +490,9 @@ protected:
 	}
 public:
 	/*Suma pixel a pixel el valor de la imagen derecha sobre el valor de la imagen izquierda. Nunca se sale de rango [0,255]*/
-	template<class T> static inline cimg_library::CImg<T> addImages(cimg_library::CImg<T> &leftSideImage, cimg_library::CImg<T> &rightSideImage){
-		cimg_library::CImg<T> result(leftSideImage); // se podria pasar por copia directamente, pero es para mantener el formato
-		cimg_library::CImg<T> rightCopy(rightSideImage);
+	template<class T> static inline CImg<T> addImages(CImg<T> &leftSideImage, CImg<T> &rightSideImage){
+		CImg<T> result(leftSideImage); // se podria pasar por copia directamente, pero es para mantener el formato
+		CImg<T> rightCopy(rightSideImage);
 
 		if (result.width() != rightCopy.width() || result.height() != rightCopy.height()){
 			rightCopy.resize(result);
@@ -510,9 +512,9 @@ public:
 	}
 
 	/*Resta pixel a pixel el valor de la imagen derecha sobre el valor de la imagen izquierda. Nunca se sale de rango [0,255]*/
-	template <class T> static inline cimg_library::CImg<T> substractImages(cimg_library::CImg<T> &leftSideImage, cimg_library::CImg<T> &rightSideImage){
-		cimg_library::CImg<T> result(leftSideImage); // se podria pasar por copia directamente, pero es para mantener el formato
-		cimg_library::CImg<T> rightCopy(rightSideImage);
+	template <class T> static inline CImg<T> substractImages(CImg<T> &leftSideImage, CImg<T> &rightSideImage){
+		CImg<T> result(leftSideImage); // se podria pasar por copia directamente, pero es para mantener el formato
+		CImg<T> rightCopy(rightSideImage);
 
 		if (result.width() != rightCopy.width() || result.height() != rightCopy.height()){
 			rightCopy.resize(result);
@@ -532,9 +534,9 @@ public:
 	}
 
 	/*Multiplica pixel a pixel el valor de la imagen derecha sobre el valor de la imagen izquierda. Nunca se sale de rango [0,255]*/
-	template <class T> static inline cimg_library::CImg<T> multiplyImages(cimg_library::CImg<T> &leftSideImage, cimg_library::CImg<T> &rightSideImage){
-		cimg_library::CImg<T> result(leftSideImage); // se podria pasar por copia directamente, pero es para mantener el formato
-		cimg_library::CImg<T> rightCopy(rightSideImage);
+	template <class T> static inline CImg<T> multiplyImages(CImg<T> &leftSideImage, CImg<T> &rightSideImage){
+		CImg<T> result(leftSideImage); // se podria pasar por copia directamente, pero es para mantener el formato
+		CImg<T> rightCopy(rightSideImage);
 
 		if (result.width() != rightCopy.width() || result.height() != rightCopy.height()){
 			rightCopy.resize(result);
@@ -556,9 +558,9 @@ public:
 	}
 
 	/*Multiplica la inversa de la segunda imagen (derecha) sobre la primera (izquierda).*/
-	template <class T> static inline cimg_library::CImg<T> divideImages(cimg_library::CImg<T> &leftSideImage, cimg_library::CImg<T> &rightSideImage){
-		//cimg_library::CImg<T> result(leftSideImage); // se podria pasar por copia directamente, pero es para mantener el formato
-		cimg_library::CImg<T> rightCopy(rightSideImage);
+	template <class T> static inline CImg<T> divideImages(CImg<T> &leftSideImage, CImg<T> &rightSideImage){
+		//CImg<T> result(leftSideImage); // se podria pasar por copia directamente, pero es para mantener el formato
+		CImg<T> rightCopy(rightSideImage);
 
 		if (leftSideImage.width() != rightCopy.width() || leftSideImage.height() != rightCopy.height()){
 			rightCopy.resize(leftSideImage);
@@ -570,8 +572,8 @@ public:
 	}
 
 	/*Convierte una imagen en binaria a partir de un valor de umbral. No altera la imagen original*/
-	template <class T> static inline cimg_library::CImg<T> toBinary(const cimg_library::CImg<T> &image, T umbral = T(127), T min = T(0), T max = T(255)){
-		cimg_library::CImg<T> copy(image);
+	template <class T> static inline CImg<T> toBinary(const CImg<T> &image, T umbral = T(127), T min = T(0), T max = T(255)){
+		CImg<T> copy(image);
 		cimg_forXY(copy, x, y){
 			copy(x, y) = copy(x, y) > umbral ? max : min;
 		}
@@ -579,10 +581,10 @@ public:
 	}
 
 	/*Agrega ruido de distribución normal, con media = mean y desviación = deviation, no altera la imagen original*/
-	template <class T> static inline cimg_library::CImg<T> addNoise(const cimg_library::CImg<T> &image, float mean, float deviation) {
+	template <class T> static inline CImg<T> addNoise(const CImg<T> &image, float mean, float deviation) {
 		static std::default_random_engine generator;
 		std::normal_distribution<float> distribution(mean, deviation);
-		cimg_library::CImg<float> noiseMap(image.width(), image.height(), 1, 1, 0.0f);
+		CImg<float> noiseMap(image.width(), image.height(), 1, 1, 0.0f);
 		cimg_forXY(noiseMap, x, y){
 			float noise = distribution(generator) + float(image(x, y));
 			if (noise < 0.0f) noise = 0.0f;
@@ -590,7 +592,7 @@ public:
 			noiseMap(x, y) = noise - image(x, y);
 		}
 
-		cimg_library::CImg<T> copy(image);
+		CImg<T> copy(image);
 		cimg_forXY(copy, x, y){
 			copy(x, y) = copy(x, y) + T(noiseMap(x, y));
 		}
@@ -598,10 +600,10 @@ public:
 	}
 
 	/*TODO add doc, supone que todas la imagenes tienen el mismo tamaño*/
-	template <class T> static inline cimg_library::CImg<T> reduceNoise(std::vector<cimg_library::CImg<T> > &images) {
+	template <class T> static inline CImg<T> reduceNoise(std::vector<CImg<T> > &images) {
 		int width = images.begin()->width();
 		int height = images.begin()->height();
-		cimg_library::CImg<double> sum(width, height, 1, 1, 0.0);
+		CImg<double> sum(width, height, 1, 1, 0.0);
 		if (images.size() > 0){
 
 			for (auto &image : images){
@@ -613,11 +615,11 @@ public:
 			sum.save_bmp("sum.bmp");
 #endif
 		}
-		return cimg_library::CImg<T>(sum);
+		return CImg<T>(sum);
 	}
 
-	template <class T> static inline cimg_library::CImg<T> moverImagen(cimg_library::CImg<T> &image, int deltaX = 1, int deltaY = 0){
-		cimg_library::CImg<T> &result = image.get_fill(0); // para que tenga el mismo tamaño
+	template <class T> static inline CImg<T> moverImagen(CImg<T> &image, int deltaX = 1, int deltaY = 0){
+		CImg<T> &result = image.get_fill(0); // para que tenga el mismo tamaño
 
 		for (int x = deltaX; x < image.width(); ++x){
 			for (int y = deltaY; y < image.height(); ++y){
@@ -628,9 +630,9 @@ public:
 		return result;
 	}
 
-	template <class T> static inline cimg_library::CImg<T> embossFilter(cimg_library::CImg<T> &image, int deltaX = 1, int deltaY = 0) {
+	template <class T> static inline CImg<T> embossFilter(CImg<T> &image, int deltaX = 1, int deltaY = 0) {
 		std::vector<unsigned char> &LUT = createLut255(-1.0f, 255.0f);
-		cimg_library::CImg<T> semi_inverse = mapLUT(image, LUT);
+		CImg<T> semi_inverse = mapLUT(image, LUT);
 		semi_inverse = moverImagen(semi_inverse, deltaX, deltaY);
 		return addImages(image, semi_inverse);
 	}
@@ -640,16 +642,16 @@ public:
 	...
 	bit 0 = > 0000 0001 = 1
 	*/
-	template <class T> static inline cimg_library::CImg<T> toBit(cimg_library::CImg<T> &image, unsigned char bit = 0){
+	template <class T> static inline CImg<T> toBit(CImg<T> &image, unsigned char bit = 0){
 		bit = bit % 8; // para que no se pase de largo.
-		cimg_library::CImg<T> result(image);
+		CImg<T> result(image);
 		unsigned char mascara = (1 << bit);
 		result &= mascara;
 		return result;
 	}
 
-	template <class T> static inline float meanSquaredError(const cimg_library::CImg<T> &actual, const cimg_library::CImg<T> &aprox) {
-		cimg_library::CImg<T> aproxCorrected = aprox.size() == actual.size() ? aprox.get_resize(actual) : aprox;
+	template <class T> static inline float meanSquaredError(const CImg<T> &actual, const CImg<T> &aprox) {
+		CImg<T> aproxCorrected = aprox.size() == actual.size() ? aprox.get_resize(actual) : aprox;
 		float mse = 0.0;
 		cimg_forXY(actual, x, y) {
 			float aux = fabs(float(actual(x, y)) - float(aproxCorrected(x, y)));
@@ -658,7 +660,7 @@ public:
 		return (mse / actual.size()) / actual.spectrum();
 	}
 
-	template <class T> static inline void showImageAndWait(cimg_library::CImg<T> &image, char* title = ""){
+	template <class T> static inline void showImageAndWait(CImg<T> &image, char* title = ""){
 		CImgUtils::waitForWindow(CImgUtils::showImage(image, title));
 	}
 
@@ -670,7 +672,7 @@ public:
 		cy = y0 + (y1 - y0) / 2;
 	}
 
-	template < class T > static float getDistance(cimg_library::CImg<T> &left, cimg_library::CImg<T> &right) {
+	template < class T > static float getDistance(CImg<T> &left, CImg<T> &right) {
 		float result = 0.0f;
 
 		cimg_forXY(left, x, y){
@@ -683,10 +685,10 @@ public:
 #define M_PI 3.14159265358979323846f
 
 	template<typename T>
-	static inline cimg_library::CImg<T> gaussFilter(T sigma = T(1.0f), T deriv = T(0)) {
+	static inline CImg<T> gaussFilter(T sigma = T(1.0f), T deriv = T(0)) {
 		T width = 3 * sigma;               // may be less width?
 		T sigma2 = sigma*sigma;
-		cimg_library::CImg<T> filter;
+		CImg<T> filter;
 		filter.assign(int(2 * width) + 1);
 
 		T i = 0;
@@ -699,6 +701,32 @@ public:
 		}
 		return filter;
 	}
+	template <class T = double> inline static void showSpectrum(CImgList<T> &fft) {
+		CImg<T> &real = fft(0);
+		CImg<T> &imag = fft(1);
+		int alto = real.width();
+		int ancho = real.height();
+		CImg<T> magnitud(real.get_fill(T(0)));
+		cimg_forXY(magnitud, x, y) {
+			T &r = real(x, y); T &i = imag(x, y);
+			magnitud(x, y) = r*r + i*i;
+		}
+		magnitud.sqrt();
+		//magnitud.log();
+		magnitud.normalize(0, 255);
+		magnitud.display();
+	}
 
-
+	template <class T> inline static void showPhase(CImgList<T> &fft) {
+		CImg<T> &real = fft(0);
+		CImg<T> &imag = fft(1);
+		int alto = real.width();
+		int ancho = real.height();
+		CImg<T> phase(real.get_fill(T(0)));
+		cimg_forXY(phase, x, y) {
+			T &r = real(x, y); T &i = imag(x, y);
+			phase(x, y) = atan( i , r );
+		}
+		phase.display();
+	}
 };
