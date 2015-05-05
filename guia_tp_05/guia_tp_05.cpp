@@ -121,8 +121,9 @@ void ejercicio_1_2(){
 
 	//CImg<double> &circulo = CImgUtils::drawCircle(1024, 1024, 32);
 	//CImgUtils::showSpectrum(circulo.get_FFT(), true, true);
-	cimgd &circulo = CImgUtils::drawCircle(int(512), int(512), int(16));
-	//CImgUtils::draw_3D_image(circulo);
+	double zero = 0.0;
+	cimgd circulo = CImgUtils::drawCircle(int(512), int(512), int(16), zero);
+	CImgUtils::draw_3D_image(circulo);
 }
 
 int _tmain(int argc, _TCHAR* argv[])

@@ -160,7 +160,7 @@ public:
 
 	/*Crea una CImg y le dibuja un círculo en el medio*/
 	template <typename T> 
-	inline static CImg<T> drawCircle(int width, int height, int circleRadius){
+	inline static CImg<T> drawCircle(int width, int height, int circleRadius, T &tipo = T(0) ){
 		static T white[] = { T(255) };
 		if (width*height <= 0) throw std::logic_error("Alto o ancho icorrecto/s, revisar los valores");
 		CImg<T> image(width, height, 1, 1, 0);
@@ -714,8 +714,8 @@ public:
 	*/
 	inline static void draw_3D_image(const CImg<double> &imagen, const double sigma = 1.0f, const double ratioz = 1.0, const unsigned int di = 10){
 		// Init data
-		const auto &img = imagen.get_blur(sigma).resize(-100, -100, 1, 3);
-		const auto &norm = img.get_norm().normalize(0, 255);
+		CImg<double> &img = imagen.get_blur(sigma).get_resize(-100, -100, 1, 3);
+		CImg<double> &norm = img.get_norm().get_normalize(0, 255);
 
 		CImgList<unsigned int> primitives;
 		CImgList<double> colors;
