@@ -43997,7 +43997,7 @@ namespace cimg_library_suffixed {
       cimglist_for(primitives,l) {
         const CImg<tc>& color = l<colors.width()?colors[l]:default_color;
         const unsigned int psiz = primitives[l].size(), csiz = color.size();
-        const float r = color[0]/255.0f, g = (csiz>1?color[1]:r)/255.0f, b = (csiz>2?color[2]:g)/255.0f;
+        const float r = color[0]/255.0, g = (csiz>1?color[1]:r)/255.0f, b = (csiz>2?color[2]:g)/255.0f;
         switch (psiz) {
         case 1 : std::fprintf(nfile,"1 %u %f %f %f\n",
                               (unsigned int)primitives(l,0),r,g,b); break;

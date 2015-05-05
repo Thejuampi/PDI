@@ -1,6 +1,8 @@
 // guia_tp_05.cpp : Defines the entry point for the console application.
 //
-
+//#ifndef cimg_use_openmp
+//#define cimg_use_openmp 1
+//#endif
 #include "stdafx.h"
 using namespace cimg_library;
 
@@ -103,22 +105,24 @@ void pueba_parcial_1() {
 typedef CImg<double> cimgd;
 typedef CImgList<double> cimgld;
 void ejercicio_1_2(){
-	static const double color[] = { 255.0 };
-	cimgd lineaVertical(256, 256, 1, 1, 0);
-	lineaVertical.draw_line(128,0,128,256,color);
-	cimgld &fft = lineaVertical.get_FFT();
-	CImgUtils::showSpectrum(fft);
+	//static const double color[] = { 255.0 };
+	//cimgd lineaVertical(256, 256, 1, 1, 0);
+	//lineaVertical.draw_line(128,0,128,256,color);
+	//cimgld &fft = lineaVertical.get_FFT();
+	//CImgUtils::showSpectrum(fft);
 
-	cimgd cuadradoCentrado(256, 256, 1, 1, 0);
-	CImgUtils::replaceSubRegion(cuadradoCentrado, cimgd(40,40,1,1,255), 128 - 20, 128 - 20);
-	CImgUtils::showSpectrum(cuadradoCentrado.get_FFT());
+	//cimgd cuadradoCentrado(256, 256, 1, 1, 0);
+	//CImgUtils::replaceSubRegion(cuadradoCentrado, cimgd(40,40,1,1,255), 128 - 20, 128 - 20);
+	//CImgUtils::showSpectrum(cuadradoCentrado.get_FFT());
 
-	cimgd rectanguloCentrado(256, 256, 1, 1, 0);
-	CImgUtils::replaceSubRegion(rectanguloCentrado, cimgd(120, 40, 1, 1, 255), 128 - 60, 128 - 20);
-	CImgUtils::showSpectrum(rectanguloCentrado.get_FFT());
+	//cimgd rectanguloCentrado(256, 256, 1, 1, 0);
+	//CImgUtils::replaceSubRegion(rectanguloCentrado, cimgd(120, 40, 1, 1, 255), 128 - 60, 128 - 20);
+	//CImgUtils::showSpectrum(rectanguloCentrado.get_FFT());
 
-	cimgd circulo = CImgUtils::drawCircle(256, 256, 64);
-	CImgUtils::showSpectrum(circulo.get_FFT());
+	//CImg<double> &circulo = CImgUtils::drawCircle(1024, 1024, 32);
+	//CImgUtils::showSpectrum(circulo.get_FFT(), true, true);
+	cimgd &circulo = CImgUtils::drawCircle(int(512), int(512), int(16));
+	//CImgUtils::draw_3D_image(circulo);
 }
 
 int _tmain(int argc, _TCHAR* argv[])
