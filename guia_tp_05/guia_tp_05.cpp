@@ -88,35 +88,42 @@ void ejercicio_1_1(){
 }
 
 void pueba_parcial_1() {
-	CImg<double> imagen("../guia_tp_01/img/cameraman.tif");
-
-	cimg_forXY(imagen, x, y){
-		if ((x + y) % 2 != 0){
-			imagen(x, y) = -imagen(x, y); //"multiplico" por (-1)^(x+y)
-		}
-	}
+	//CImg<double> imagen("../guia_tp_01/img/cameraman.tif");
+	CImg<double> imagen(256, 256, 1, 1, 0);
+	CImg<double> cuadroBlanco(40, 40, 1, 1, 255);
+	CImgUtils::replaceSubRegion(imagen, cuadroBlanco, 128-cuadroBlanco.width()/2, 128-cuadroBlanco.height()/2);
+	//imagen.display();
 	int alto = imagen.height();
 	int ancho = imagen.width();
 	
-	CImgUtils::showSpectrum(imagen.get_FFT());
-	CImgUtils::showPhase(imagen.get_FFT());
-	CImg<double> filtro_real(alto, ancho, 1, 1);
-	CImg<double> filtro_imag(alto, ancho, 1, 1);
+	CImgUtils::showSpectrum(imagen.get_FFT(), true);
 
-//	filtro_real(alto / 2, ancho / 2) = 0;
-//	filtro_imag(alto / 2, ancho / 2) = 0;
+}
 
-//	real *= filtro_real;
-	//imag *= filtro_imag;
-	
-//	auto imagen_filtrada = fft.get_FFT(true);
-	//imagen_filtrada[0].display();
+typedef CImg<double> cimgd;
+typedef CImgList<double> cimgld;
+void ejercicio_1_2(){
+	static const double color[] = { 255.0 };
+	cimgd lineaVertical(256, 256, 1, 1, 0);
+	lineaVertical.draw_line(128,0,128,256,color);
+	cimgld &fft = lineaVertical.get_FFT();
+	CImgUtils::showSpectrum(fft);
+
+	cimgd cuadradoCentrado(256, 256, 1, 1, 0);
+	CImgUtils::replaceSubRegion(cuadradoCentrado, cimgd(40,40,1,1,255), 128 - 20, 128 - 20);
+	CImgUtils::showSpectrum(cuadradoCentrado.get_FFT());
+
+	cimgd rectanguloCentrado(256, 256, 1, 1, 0);
+	CImgUtils::replaceSubRegion(rectanguloCentrado, cimgd(120, 40, 1, 1, 255), 128 - 60, 128 - 20);
+	CImgUtils::showSpectrum(rectanguloCentrado.get_FFT());
+
+	cimgd circulo = CImgUtils::drawCircle(256, 256, 64);
+	CImgUtils::showSpectrum(circulo.get_FFT());
 }
 
 int _tmain(int argc, _TCHAR* argv[])
 {
-	//ejercicio_1_1();
-	pueba_parcial_1();
+	ejercicio_1_2();
 	return 0;
 }
 

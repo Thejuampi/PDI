@@ -701,23 +701,27 @@ public:
 		}
 		return filter;
 	}
-	template <class T = double> inline static void showSpectrum(CImgList<T> &fft) {
+	template <class T = double> inline static void showSpectrum(CImgList<T> &fft, boolean center = true) {
 		CImg<T> &real = fft(0);
 		CImg<T> &imag = fft(1);
-		int alto = real.width();
-		int ancho = real.height();
-		CImg<T> magnitud(real.get_fill(T(0)));
+		int ancho = real.width();
+		int alto = real.height();
+		CImg<T> &magnitud = real.get_fill(T(0));
 		cimg_forXY(magnitud, x, y) {
 			T &r = real(x, y); T &i = imag(x, y);
 			magnitud(x, y) = r*r + i*i;
 		}
 		magnitud.sqrt();
-		//magnitud.log();
+		magnitud += 1;
+		magnitud.log();
 		magnitud.normalize(0, 255);
+		if (center) {
+			magnitud.shift(ancho / 2, alto / 2, 0, 0, 2);
+		}
 		magnitud.display();
 	}
 
-	template <class T> inline static void showPhase(CImgList<T> &fft) {
+	template <class T> inline static void showSpectrumshowPhase(CImgList<T> &fft) {
 		CImg<T> &real = fft(0);
 		CImg<T> &imag = fft(1);
 		int alto = real.width();
@@ -725,7 +729,7 @@ public:
 		CImg<T> phase(real.get_fill(T(0)));
 		cimg_forXY(phase, x, y) {
 			T &r = real(x, y); T &i = imag(x, y);
-			phase(x, y) = atan( i , r );
+			phase(x, y) = atan2( i , r );
 		}
 		phase.display();
 	}
