@@ -6,6 +6,10 @@
 #include "stdafx.h"
 using namespace cimg_library;
 
+typedef void(*ejercicio)(void);
+
+static const char* cameramanPath = "../guia_tp_01/img/cameraman.tif";
+
 void draw_3D_image(CImg<double> imagen, const float sigma = 1.0f, const double ratioz = 1.0, const unsigned int di = 10){
 	// Init data
 	const CImg<double> img = imagen.blur(sigma).resize(-100, -100, 1, 3);
@@ -105,30 +109,109 @@ void pueba_parcial_1() {
 typedef CImg<double> cimgd;
 typedef CImgList<double> cimgld;
 void ejercicio_1_2(){
-	//static const double color[] = { 255.0 };
-	//cimgd lineaVertical(256, 256, 1, 1, 0);
-	//lineaVertical.draw_line(128,0,128,256,color);
-	//cimgld &fft = lineaVertical.get_FFT();
-	//CImgUtils::showSpectrum(fft);
-
-	//cimgd cuadradoCentrado(256, 256, 1, 1, 0);
-	//CImgUtils::replaceSubRegion(cuadradoCentrado, cimgd(40,40,1,1,255), 128 - 20, 128 - 20);
-	//CImgUtils::showSpectrum(cuadradoCentrado.get_FFT());
-
-	//cimgd rectanguloCentrado(256, 256, 1, 1, 0);
-	//CImgUtils::replaceSubRegion(rectanguloCentrado, cimgd(120, 40, 1, 1, 255), 128 - 60, 128 - 20);
-	//CImgUtils::showSpectrum(rectanguloCentrado.get_FFT());
-
-	//CImg<double> &circulo = CImgUtils::drawCircle(1024, 1024, 32);
-	//CImgUtils::showSpectrum(circulo.get_FFT(), true, true);
 	double zero = 0.0;
-	cimgd circulo = CImgUtils::drawCircle(int(512), int(512), int(16), zero);
-	CImgUtils::draw_3D_image(circulo);
+	static const double color[] = { 255.0 };
+	cimgd lineaVertical(256, 256, 1, 1, 0);
+	lineaVertical.draw_line(128,0,128,256,color);
+	cimgld &fft = lineaVertical.get_FFT();
+	CImgUtils::showSpectrum(fft);
+
+	cimgd cuadradoCentrado(256, 256, 1, 1, 0);
+	CImgUtils::replaceSubRegion(cuadradoCentrado, cimgd(40,40,1,1,255), 128 - 20, 128 - 20);
+	CImgUtils::showSpectrum(cuadradoCentrado.get_FFT());
+
+	cimgd rectanguloCentrado(256, 256, 1, 1, 0);
+	CImgUtils::replaceSubRegion(rectanguloCentrado, cimgd(120, 40, 1, 1, 255), 128 - 60, 128 - 20);
+	CImgUtils::showSpectrum(rectanguloCentrado.get_FFT());
+
+	cimgd &circulo = CImgUtils::drawCircle(int(512), int(512), int(16), zero);
+	CImgUtils::showSpectrum(circulo.get_FFT(), true, false);
 }
+
+void ejercicio_1_3() {
+	double zero = 0.0;
+	static const double color[] = { 255.0 };
+	cimgd lineaVertical(256, 256, 1, 1, 0);
+	lineaVertical.draw_line(10, 0, 10, 256, color); // en ves del medio, esta a x = 10;
+	cimgld &fft = lineaVertical.get_FFT();
+	CImgUtils::showSpectrum(fft);
+
+	cimgd cuadradoCentrado(256, 256, 1, 1, 0);
+	CImgUtils::replaceSubRegion(cuadradoCentrado, cimgd(40, 40, 1, 1, 255), 20, 20); // en (x, y) = (20, 20)
+	CImgUtils::showSpectrum(cuadradoCentrado.get_FFT());
+
+	cimgd rectanguloCentrado(256, 256, 1, 1, 0);
+	CImgUtils::replaceSubRegion(rectanguloCentrado, cimgd(120, 40, 1, 1, 255), 0, 0); // en 0,0
+	CImgUtils::showSpectrum(rectanguloCentrado.get_FFT());
+
+	cimgd &circulo = CImgUtils::drawCircle(int(512), int(512), int(64), zero);
+	CImgUtils::showSpectrum(circulo.get_FFT(), true, false);
+}
+
+void ejercicio_1_4(){
+	double color[] = { 255 };
+	cimgd lineaVerticalCentrada(512, 512, 1, 1, 0);
+	lineaVerticalCentrada.draw_line(256, 0, 256, 512, color);
+	cimgd &lineaVerticalRotada = lineaVerticalCentrada.get_rotate(20, 0, 0);
+	CImgUtils::showSpectrum(lineaVerticalRotada.get_FFT());
+
+	lineaVerticalRotada.crop(219, 198, 474, 453);
+	lineaVerticalCentrada.crop(128, 128, 383, 383);
+	//lineaVerticalCentrada.display();
+	//lineaVerticalRotada.display();
+
+	CImgUtils::showSpectrum(lineaVerticalCentrada.get_FFT());
+	CImgUtils::showSpectrum(lineaVerticalRotada.get_FFT());
+
+}
+
+void ejercicio_2_1(){
+	cimgd imagen(cameramanPath);
+	cimgd dummy(imagen.get_fill(0));
+	cimgld &fft = imagen.get_FFT();
+	cimgd &magnitud	= CImgUtils::getSpectrum(fft);
+	//usar la magnitud como parte real de la fft, y dejar la parte imaginaria en 0 es lo que tengo que hacer.
+	cimgld solo_modulo;
+	solo_modulo.push_back(magnitud);
+	solo_modulo.push_back(magnitud.get_fill(0));
+	cimgd imagenSoloModulo = solo_modulo.get_FFT(true)[0]; // parte real, la imaginaria se descarta.
+
+	//en este caso es diferente, porque tengo que crear la imagen, con la misma fase, pero con magnitud 1.
+	cimgd real_solo_fase = fft[0];
+	cimgd imag_solo_fase = fft[1];
+
+	cimg_forXY(real_solo_fase, x, y){
+		double &r = real_solo_fase(x, y);
+		double &i = imag_solo_fase(x, y);
+		double &mag = magnitud(x, y);
+		//normalizo el numero complejo por su norma, para que quede mag 1.
+		r /= mag;
+		i /= mag;
+	}
+
+	cimgld solo_fase;
+	solo_fase.push_back(real_solo_fase);
+	solo_fase.push_back(imag_solo_fase);
+
+	cimgd imagenSoloFase = solo_fase.get_FFT(true)[0]; // parte real, la imag se desprecia
+	
+	imagenSoloModulo.display("Modulo Igual, fase = 0");
+	imagenSoloFase.display("Modulo unitario, fase queda igual");
+}
+
+ejercicio ejercicios[] = {
+	ejercicio_1_1,
+	ejercicio_1_2,
+	ejercicio_1_3,
+	ejercicio_1_4,
+	ejercicio_2_1
+};
+
+int nEjercicios = 5;
 
 int _tmain(int argc, _TCHAR* argv[])
 {
-	ejercicio_1_2();
+	ejercicios[nEjercicios - 1]();
 	return 0;
 }
 

@@ -781,7 +781,12 @@ public:
 	}
 
 
-	template <class T = double> inline static void showSpectrum(CImgList<T> &fft, boolean center = true, boolean save = false) {
+
+	template <class T = double>
+	inline static CImg<T> getSpectrum(CImgList<T> &fft) {
+		if (fft.size() != 2) {
+			throw std::runtime_error("fft debe poseer dos componentes");
+		}
 		CImg<T> &real = fft(0);
 		CImg<T> &imag = fft(1);
 		int ancho = real.width();
@@ -791,7 +796,15 @@ public:
 			T &r = real(x, y); T &i = imag(x, y);
 			magnitud(x, y) = r*r + i*i;
 		}
-		magnitud.sqrt();
+		return magnitud.sqrt();
+	}
+
+
+	template <class T = double> 
+	inline static void showSpectrum(CImgList<T> &fft, boolean center = true, boolean save = false) {
+		CImg<T> &magnitud = CImgUtils::getSpectrum(fft);
+		int alto = magnitud.height();
+		int ancho = magnitud.width();
 		magnitud += 1;
 		magnitud.log();
 		magnitud.normalize(0, 255);
@@ -805,7 +818,7 @@ public:
 		
 	}
 
-	template <class T> inline static void showSpectrumshowPhase(CImgList<T> &fft) {
+	template <class T> inline static void showPhase(CImgList<T> &fft) {
 		CImg<T> &real = fft(0);
 		CImg<T> &imag = fft(1);
 		int alto = real.width();
@@ -818,5 +831,18 @@ public:
 		phase.display();
 	}
 
+	template <class T>
+	inline static CImg<T> getPhase(CImgList<T> &fft){
+		CImg<T> &real = fft(0);
+		CImg<T> &imag = fft(1);
+		int alto = real.width();
+		int ancho = real.height();
+		CImg<T> phase(real.get_fill(T(0)));
+		cimg_forXY(phase, x, y) {
+			T &r = real(x, y); T &i = imag(x, y);
+			phase(x, y) = atan2(i, r);
+		}
+		return phase;
+	}
 
 };
