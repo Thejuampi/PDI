@@ -845,4 +845,42 @@ public:
 		return phase;
 	}
 
+	template <class T>
+	inline static CImg<double> getModuloOnly(CImgList<T> &fft, bool aplicarLogaritmo = false){
+		CImg<double> &magnitud = CImgUtils::getSpectrum(fft);
+		//usar la magnitud como parte real de la fft, y dejar la parte imaginaria en 0 es lo que tengo que hacer.
+		CImgList<double> solo_modulo;
+		solo_modulo.push_back(magnitud);
+		solo_modulo.push_back(magnitud.get_fill(0));
+		cimgd imagenSoloModulo = solo_modulo.get_FFT(true)[0]; // parte real, la imaginaria se descarta.
+		if (aplicarLogaritmo) {
+			imagenSoloModulo += 1.0;
+			imagenSoloModulo.log();
+		}
+		return imagenSoloModulo;
+	}
+	template <class T>
+	inline static CImg<double> getModuloUnitarioFaseIgual(CImgList<double> &fft) {
+		cimgd real_solo_fase = fft[0]; //TODO ver si anda usando referencias, ahoar no tengo tiempo
+		cimgd imag_solo_fase = fft[1];
+
+		cimg_forXY(real_solo_fase, x, y){
+			double &r = real_solo_fase(x, y);
+			double &i = imag_solo_fase(x, y);
+			double &mag = magnitud(x, y);
+			//normalizo el numero complejo por su norma, para que quede mag 1.
+			r /= mag;
+			i /= mag;
+		}
+
+		cimgld solo_fase;
+		solo_fase.push_back(real_solo_fase);
+		solo_fase.push_back(imag_solo_fase);
+
+		cimgd imagenSoloFase = solo_fase.get_FFT(true)[0]; // parte real, la imag se desprecia
+
+		return imagenSoloFase;
+	}
+
+
 };

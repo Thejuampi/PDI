@@ -9,6 +9,7 @@ using namespace cimg_library;
 typedef void(*ejercicio)(void);
 
 static const char* cameramanPath = "../guia_tp_01/img/cameraman.tif";
+static const char* earthPath = "../guia_tp_01/img/earthsqr.png";
 
 void draw_3D_image(CImg<double> imagen, const float sigma = 1.0f, const double ratioz = 1.0, const unsigned int di = 10){
 	// Init data
@@ -167,15 +168,17 @@ void ejercicio_1_4(){
 
 void ejercicio_2_1(){
 	cimgd imagen(cameramanPath);
-	cimgd dummy(imagen.get_fill(0));
 	cimgld &fft = imagen.get_FFT();
 	cimgd &magnitud	= CImgUtils::getSpectrum(fft);
+	//magnitud.get_shift(128, 128, 0, 0, 2).display();
+
 	//usar la magnitud como parte real de la fft, y dejar la parte imaginaria en 0 es lo que tengo que hacer.
 	cimgld solo_modulo;
 	solo_modulo.push_back(magnitud);
 	solo_modulo.push_back(magnitud.get_fill(0));
 	cimgd imagenSoloModulo = solo_modulo.get_FFT(true)[0]; // parte real, la imaginaria se descarta.
-
+	imagenSoloModulo += 1.0;
+	imagenSoloModulo.log();
 	//en este caso es diferente, porque tengo que crear la imagen, con la misma fase, pero con magnitud 1.
 	cimgd real_solo_fase = fft[0];
 	cimgd imag_solo_fase = fft[1];
@@ -199,15 +202,70 @@ void ejercicio_2_1(){
 	imagenSoloFase.display("Modulo unitario, fase queda igual");
 }
 
+void ejercicio_2_2() {
+	cimgd cameraman(cameramanPath);
+	cimgd earth(earthPath);
+	
+	cameraman.resize(256, 256);
+	earth.resize(256, 256);
+
+	cimgld& fft_cameraman = cameraman.get_FFT();
+	cimgld& fft_earth = earth.get_FFT();
+
+	cimgd mag_cam = CImgUtils::getSpectrum(fft_cameraman);
+	cimgd mag_earth = CImgUtils::getSpectrum(fft_earth);
+
+	cimgd real_cam = fft_cameraman[0];
+	cimgd imag_cam = fft_cameraman[1];
+	
+	cimgd real_earth = fft_earth[0];
+	cimgd imag_earth = fft_earth[1];
+
+	cimgd nuevo_real_cam = real_cam.get_fill(0);
+	cimgd nuevo_imag_cam = imag_cam.get_fill(0);
+
+	cimgd nuevo_real_earth = real_earth.get_fill(0);
+	cimgd nuevo_imag_earth = imag_earth.get_fill(0);
+
+	for (int u = 0; u < 256; ++u) {
+		for (int v = 0; v < 256; ++v) {
+			//cameraman
+			//mantengo la fase, aplico magnitud de la otra imagen.
+			nuevo_real_cam(u, v) = real_cam(u, v) / mag_cam(u, v)*mag_earth(u, v);
+			nuevo_imag_cam(u, v) = imag_cam(u, v) / mag_cam(u, v)*mag_earth(u, v);
+
+			//earth
+			//mantengo la fase, modifico magnitud
+			nuevo_real_earth(u, v) = real_earth(u, v) / mag_earth(u, v)*mag_cam(u, v);
+			nuevo_imag_earth(u, v) = imag_earth(u, v) / mag_earth(u, v)*mag_cam(u, v);
+;		}
+	}
+
+	cimgld nuevo_cam_fft, nuevo_earth_fft;
+	nuevo_cam_fft.push_back(nuevo_real_cam);
+	nuevo_cam_fft.push_back(nuevo_imag_cam);
+
+	nuevo_earth_fft.push_back(nuevo_real_earth);
+	nuevo_earth_fft.push_back(nuevo_imag_earth);
+
+	cimgd nuevo_earth	= nuevo_earth_fft.get_FFT(true)[0];
+	cimgd nuevo_cam = nuevo_cam_fft.get_FFT(true)[0];
+
+	cimgld imagenes;
+	imagenes.push_back(nuevo_earth).push_back(nuevo_cam);
+	auto disp = imagenes.display();
+}
+
 ejercicio ejercicios[] = {
 	ejercicio_1_1,
 	ejercicio_1_2,
 	ejercicio_1_3,
 	ejercicio_1_4,
-	ejercicio_2_1
+	ejercicio_2_1,
+	ejercicio_2_2
 };
 
-int nEjercicios = 5;
+int nEjercicios = 6;
 
 int _tmain(int argc, _TCHAR* argv[])
 {
