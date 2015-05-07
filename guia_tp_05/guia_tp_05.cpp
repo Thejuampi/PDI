@@ -1,8 +1,7 @@
 // guia_tp_05.cpp : Defines the entry point for the console application.
 //
-//#ifndef cimg_use_openmp
-//#define cimg_use_openmp 1
-//#endif
+#define cimg_use_openmp 1
+#define cimg_use_fftw3 1
 #include "stdafx.h"
 using namespace cimg_library;
 
@@ -256,16 +255,44 @@ void ejercicio_2_2() {
 	auto disp = imagenes.display();
 }
 
+/*Falta ver como se hacia el zero padding, no me acuerdo...*/
+void ejercicio_3_1(){
+	cimgd mascara(32, 32, 1, 1, 1.0/(32*32)); //mascara de promediado;
+	double color[] = { 1.0 };
+	cimgd earth(earthPath);
+	cimgld& earth_fft = earth.get_FFT();
+	cimgd& real = earth_fft(0);
+	cimgd& imag = earth_fft(1);
+
+	int alto = earth.height();
+	int ancho = earth.width();
+	//earth.convolve(mascara);
+	//earth.display("Mundo con mascara promedio 32x32");
+
+	cimgd mascara_fft(32, 32, 1, 1, 0.000001); // lo hago mas chico, despues lo escalo e interpolo para generar un filtro mas suave.
+	mascara_fft.draw_circle(15, 15, 5, color); //superior izquierda
+	mascara_fft.shift(16, 16, 0, 0, 2);
+	mascara_fft.resize(ancho, alto, -100, -100, 3);
+	cimg_forXY(earth, x, y) {
+		real(x, y) *= mascara_fft(x, y);
+		imag(x, y) *= mascara_fft(x, y);
+	}
+	cimgd earth_filtrado_frecuencia = earth_fft.get_FFT(true)(0);
+	earth_filtrado_frecuencia.normalize(0.0, 255.0);
+	earth_filtrado_frecuencia.display("earth filtrado en frecuencia");
+}
+
 ejercicio ejercicios[] = {
 	ejercicio_1_1,
 	ejercicio_1_2,
 	ejercicio_1_3,
 	ejercicio_1_4,
 	ejercicio_2_1,
-	ejercicio_2_2
+	ejercicio_2_2,
+	ejercicio_3_1
 };
 
-int nEjercicios = 6;
+int nEjercicios = 7;
 
 int _tmain(int argc, _TCHAR* argv[])
 {
