@@ -268,7 +268,7 @@ public:
 				val = T(0);
 			}
 			else if (val > riseEnd){
-				val = ~T(0);
+				val = T(255);
 			}
 			else {
 				val = T(b + m*val); //transform
@@ -371,7 +371,8 @@ public:
 	}
 
 	/*Modifica una LUT*/
-	template <class T = unsigned char> static void alterLUTLinear(std::vector<T> &LUT, const float gain = 1.0f, const float offset = 0.0f, T start = T(0), T end = T(255)){
+	template <class T = unsigned char>
+	static void alterLUTLinear(std::vector<T> &LUT, const float gain = 1.0f, const float offset = 0.0f, T start = T(0), T end = T(255)){
 		if (start == end) return;
 		if (end < start) intercambia(start, end);
 		if (start < T(0)) start = T(0);
@@ -393,7 +394,8 @@ public:
 	}
 
 	/*Crea una LUT, con ganancia, offset, inicio del rango y fin del rango */
-	template <class T = unsigned char> static inline std::vector<T> createLut255(float gain = 1.0f, float offset = 0.0f, T start = T(0), T end = T(255)) {
+	template <class T>
+	static inline std::vector<T> createLut255(float gain = 1.0f, float offset = 0.0f, T start = T(0), T end = T(255)) {
 		if (end < start) intercambia(start, end);
 		if (start < T(0)) start = T(0);
 		if (end > T(255)) end = T(255);
@@ -880,6 +882,77 @@ public:
 		cimgd imagenSoloFase = solo_fase.get_FFT(true)[0]; // parte real, la imag se desprecia
 
 		return imagenSoloFase;
+	}
+
+	template <class T>
+	static inline CImg<T> filtroMediana(CImg<T> &imagen, unsigned int vecindad) {
+		CImg<T> copia(imagen);
+		if (vecindad % 2 != 0) ++vecindad;
+		vecindad /= 2;
+		cimg_forXY(copia, x, y) {
+			CImg<T>& vecindario = imagen.get_crop(x - vecindad, y - vecindad, x + vecindad, y + vecindad, true);
+			vecindario.sort();
+			T& val = vecindario(vecindad);
+			copia(x, y) = val;
+		}
+		return copia;
+	}
+
+	static CImg<float> new3x3SharpKernel(bool sumaUno = true, bool conDiagonales = true) {
+		CImg<float> kernel(3, 3, 1, 1, 1.0f);
+		float* d = kernel._data;
+		if (conDiagonales&&sumaUno) {
+			*(d+0) = -1.0f; *(d+1) = -1.0f; *(d+2) = -1.0f;
+			*(d+3) = -1.0f; *(d+4) = 9.0f; *(d+5) = -1.0f;
+			*(d+6) = -1.0f; *(d+7) = -1.0f; *(d+8) = -1.0f;
+		}
+		else { //no diagonal o no sumaUno
+			if (conDiagonales && !sumaUno) {
+				*(d+ 0) = -1.0f; *(d+ 1) = -1.0f; *(d+ 2) = -1.0f;
+				*(d+ 3) = -1.0f; *(d+ 4) = 8.0f; *(d+ 5) = -1.0f;
+				*(d+ 6) = -1.0f; *(d+ 7) = -1.0f; *(d+ 8) = -1.0f;
+			}
+			if (!conDiagonales && sumaUno) {
+				*(d+ 0) = -0.0f; *(d+ 1) = -1.0f; *(d+ 2) = -0.0f;
+				*(d+ 3) = -1.0f; *(d+ 4) = 5.0f; *(d+ 5) = -1.0f;
+				*(d+ 6) = -0.0f; *(d+ 7) = -1.0f; *(d+ 8) = -0.0f;
+			}
+			if (!conDiagonales && !sumaUno) {
+				*(d+ 0) = -0.0f; *(d+ 1) = -1.0f; *(d+ 2) = -0.0f;
+				*(d+ 3) = -1.0f; *(d+ 4) = 4.0f; *(d+ 5) = -1.0f;
+				*(d+ 6) = -0.0f; *(d+ 7) = -1.0f; *(d+ 8) = -0.0f;
+			}
+		}
+		return kernel;
+	}
+
+	/*TODO: TERMINAR*/
+	static CImg<float> new3x3SmothKernel(bool sumaUno = true, bool conDiagonales = true) {
+		CImg<float> kernel(3, 3, 1, 1, 1.0f);
+		float* d = kernel._data;
+		if (conDiagonales&&sumaUno) {
+			*(d + 0) = -1.0f; *(d + 1) = -1.0f; *(d + 2) = -1.0f;
+			*(d + 3) = -1.0f; *(d + 4) = 9.0f; *(d + 5) = -1.0f;
+			*(d + 6) = -1.0f; *(d + 7) = -1.0f; *(d + 8) = -1.0f;
+		}
+		else { //no diagonal o no sumaUno
+			if (conDiagonales && !sumaUno) {
+				*(d + 0) = -1.0f; *(d + 1) = -1.0f; *(d + 2) = -1.0f;
+				*(d + 3) = -1.0f; *(d + 4) = 8.0f; *(d + 5) = -1.0f;
+				*(d + 6) = -1.0f; *(d + 7) = -1.0f; *(d + 8) = -1.0f;
+			}
+			if (!conDiagonales && sumaUno) {
+				*(d + 0) = -0.0f; *(d + 1) = -1.0f; *(d + 2) = -0.0f;
+				*(d + 3) = -1.0f; *(d + 4) = 5.0f; *(d + 5) = -1.0f;
+				*(d + 6) = -0.0f; *(d + 7) = -1.0f; *(d + 8) = -0.0f;
+			}
+			if (!conDiagonales && !sumaUno) {
+				*(d + 0) = -0.0f; *(d + 1) = -1.0f; *(d + 2) = -0.0f;
+				*(d + 3) = -1.0f; *(d + 4) = 4.0f; *(d + 5) = -1.0f;
+				*(d + 6) = -0.0f; *(d + 7) = -1.0f; *(d + 8) = -0.0f;
+			}
+		}
+		return kernel;
 	}
 
 

@@ -256,6 +256,8 @@ void ejercicio_2_2() {
 }
 
 /*Falta ver como se hacia el zero padding, no me acuerdo...*/
+/*Hay que transformar la mascara de promediado, y multiplicar en frecuencia. en el otro ejercicio es que se hace
+el filtro a pata.*/
 void ejercicio_3_1(){
 	cimgd mascara(32, 32, 1, 1, 1.0/(32*32)); //mascara de promediado;
 	double color[] = { 1.0 };
@@ -266,8 +268,8 @@ void ejercicio_3_1(){
 
 	int alto = earth.height();
 	int ancho = earth.width();
-	//earth.convolve(mascara);
-	//earth.display("Mundo con mascara promedio 32x32");
+	earth.convolve(mascara);
+	earth.display("Mundo con mascara promedio 32x32");
 
 	cimgd mascara_fft(32, 32, 1, 1, 0.000001); // lo hago mas chico, despues lo escalo e interpolo para generar un filtro mas suave.
 	mascara_fft.draw_circle(15, 15, 5, color); //superior izquierda
