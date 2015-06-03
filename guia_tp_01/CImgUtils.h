@@ -1,5 +1,14 @@
 #pragma once
 
+/*
+
+TODO: 
+
+-COLORES: RETORNAR AZUL, ROJO, VERDE, ETC PARA USAR EN RGB O EN HSI
+-FILTROS: IMPLEMENTARLOS POR SU NOMBRE
+
+*/
+
 #include <cmath> // fabs
 #include <string>
 #include <vector>
@@ -955,5 +964,109 @@ public:
 		return kernel;
 	}
 
+	static void cargarPaleta(char* path, std::vector<std::vector<float>> &paleta) {
+		
+		std::ifstream archivoPaleta(path);
+		if (archivoPaleta.is_open()) {
+			paleta.clear();
+			paleta.resize(256,std::vector<float>(3)); // 256 filas, 3 columnas;
+			for (std::vector<float>& rgb : paleta) {
+				float& r = rgb[0];
+				float& g = rgb[1];
+				float& b = rgb[2];
+				archivoPaleta >> r;
+				archivoPaleta >> g;
+				archivoPaleta >> b;
+			}
+
+		}
+		else {
+			throw std::runtime_error("No se pudo abrir la paleta");
+		}
+
+	}
+
+	template <class T>
+	static inline void aplicarPaleta(std::vector<std::vector<float>> &paleta, CImg<T> &imagenOriginal, CImg<T> &imagenNueva) {
+		imagenNueva.clear();
+		int alto = imagenOriginal.height();
+		int ancho = imagenOriginal.width();
+		int prof = 1;
+		int canales = 3;
+		imagenNueva.resize(alto, ancho, prof, canales);
+
+		cimg_forXY(imagenNueva, x, y) {
+			int indice = redondea(imagenOriginal(x, y));
+			std::vector<float>& fila = paleta[indice];
+			imagenNueva(x, y, 0, 0) = fila[0];
+			imagenNueva(x, y, 0, 1) = fila[1];
+			imagenNueva(x, y, 0, 2) = fila[2];
+		}
+		imagenNueva.normalize(T(0),T(255));
+	}
+
+	template<class T> 
+	static inline void aplicarColor(CImg<T> &imagenOriginal, CImg<T> &imagenModificada, T* valorBuscado, int radio, T* valorNuevo) {
+		imagenModificada.clear();
+		imagenModificada.resize(imagenOriginal.width(), imagenOriginal.height(), 1, 3, -1);
+		
+		cimg_forXY(imagenOriginal,x,y) {
+			T& rOriginal = imagenOriginal(x, y, 0, 0);
+			if (imagenOriginal.spectrum() == 3){
+				T& gOriginal = imagenOriginal(x, y, 0, 1);
+				T& bOriginal = imagenOriginal(x, y, 0, 2);
+
+				T auxR = rOriginal - valorBuscado[0];
+				T auxG = gOriginal - valorBuscado[1];
+				T auxB = bOriginal - valorBuscado[2];
+
+				bool criterio = (auxR*auxR + auxG*auxG + auxB*auxB) <= radio*radio;
+				
+				if (criterio) {
+					imagenModificada(x, y, 0, 0) = valorNuevo[0];
+					imagenModificada(x, y, 0, 1) = valorNuevo[1];
+					imagenModificada(x, y, 0, 2) = valorNuevo[2];
+				}
+				else {
+					imagenModificada(x, y, 0, 0) = rOriginal;
+					imagenModificada(x, y, 0, 1) = gOriginal;
+					imagenModificada(x, y, 0, 2) = bOriginal;
+				}
+			}
+			else {
+				if ( abs(rOriginal - valorBuscado[0]) <= radio){
+					imagenModificada(x, y, 0, 0) = valorNuevo[0];
+					imagenModificada(x, y, 0, 1) = valorNuevo[1];
+					imagenModificada(x, y, 0, 2) = valorNuevo[2];
+				}
+				else {
+					imagenModificada(x, y, 0, 0) = rOriginal;
+					imagenModificada(x, y, 0, 1) = rOriginal;
+					imagenModificada(x, y, 0, 2) = rOriginal;
+				}
+			}
+		}
+
+	}
+
+	template <class T>
+	static void inline aplicarColorHSI(CImg<T>& imagenOriginal, CImg<T>& imagenModificada, T colorBuscado[], int radio, T colorNuevo[]) {
+		if (imagenOriginal.spectrum() < 3) {throw std::runtime_error("La imagen debe tener 3 canales para operar");}
+		imagenModificada = imagenOriginal; //copia
+		imagenModificada.RGBtoHSI();
+		int radioCuadrado = radio*radio;
+		cimg_forXY(imagenModificada, x, y){
+			T& h = imagenModificada(x, y, 0, 0);
+			T& s = imagenModificada(x, y, 0, 1);
+			T auxH = h - colorBuscado[0];
+			T auxS = s - colorBuscado[1];
+			bool criterio = auxH*auxH + auxS*auxS < radioCuadrado;
+			if (criterio) {
+				h = colorNuevo[0];
+				s = colorNuevo[1];
+;			}
+		}
+		imagenModificada.HSItoRGB();
+	}
 
 };
