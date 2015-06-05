@@ -896,7 +896,7 @@ public:
 	template <class T>
 	static inline CImg<T> filtroMediana(CImg<T> &imagen, unsigned int vecindad) {
 		CImg<T> copia(imagen);
-		if (vecindad % 2 != 0) ++vecindad;
+		//if (vecindad % 2 != 0) ++vecindad;
 		vecindad /= 2;
 		cimg_forXY(copia, x, y) {
 			CImg<T>& vecindario = imagen.get_crop(x - vecindad, y - vecindad, x + vecindad, y + vecindad, true);
@@ -905,6 +905,34 @@ public:
 			copia(x, y) = val;
 		}
 		return copia.normalize(T(0), T(255));
+	}
+
+	template <class T>
+	static inline CImg<T> filtroPuntoMedio(CImg<T> imagen, unsigned int vecindad) {
+		CImg<T> copia(imagen);
+
+		vecindad /= 2;
+		if (copia.spectrum() == 1) {//GRISES
+			cimg_forXY(copia, x, y) {
+				CImg<T>& vecindario = imagen.get_crop(x - vecindad, y - vecindad, x + vecindad, y + vecindad, true);
+				T max, min;
+				min = vecindario.min_max(max);
+				copia(x, y) = (max - min) / 2;
+			}
+		}
+		else if (copia.spectrum() == 3) {
+			cimg_forXY(copia, x, y) {
+				CImg<T>& vecindario = imagen.get_crop(x - vecindad, y - vecindad, x + vecindad, y + vecindad, true);
+				T min[3], max[3];
+				min[0] = vecindario.get_channel(0).min_max(max[0]);
+				min[1] = vecindario.get_channel(1).min_max(max[1]);
+				min[2] = vecindario.get_channel(2).min_max(max[2]);
+				copia(x, y, 0, 0) = (max[0] - min[0]) / 2;
+				copia(x, y, 0, 1) = (max[1] - min[1]) / 2;
+				copia(x, y, 0, 2) = (max[2] - min[2]) / 2;
+			}
+		}
+		return copia;
 	}
 
 	/*CUIDADO, usar solo con float o double, no esta diseñado para que ande con enteros*/
@@ -1051,9 +1079,10 @@ public:
 		vecindad /= 2;
 		if (copia.spectrum() == 1) { // grises
 			cimg_forXY(copia, x, y) {
-				CImg<T> vecindario = imagen.get_crop(x - vecindad, y - vecindad, x + vecindad, y + vecindad, true);
+				CImg<T>& vecindario = imagen.get_crop(x - vecindad, y - vecindad, x + vecindad, y + vecindad, true);
 				vecindario.sort();
-				for (unsigned i = d, T acum = T(0); i <= vecindario.size()-d; ++i) {
+				T acum = T(0);
+				for (unsigned i = d; i <= vecindario.size()-d; ++i) {
 					acum += vecindario(i);
 				}
 				acum /= (vecindario.size() - 2 * d);
@@ -1062,18 +1091,85 @@ public:
 		}
 		else  if (copia.spectrum() == 3) { // rgb
 			cimg_forXY(copia, x, y) {
-				//TODO
-				/*CImg<T> vecindario = imagen.get_crop(x - vecindad, y - vecindad, x + vecindad, y + vecindad, true);
-				vecindario.sort();
-				for (unsigned i = d, T acum = T(0); i <= vecindario.size() - d; ++i) {
-					acum += vecindario(i);
+				CImg<T>& vecindario = imagen.get_crop(x - vecindad, y - vecindad, x + vecindad, y + vecindad, true);
+				CImg<T> R[] = {
+					vecindario.get_channel(0),
+					vecindario.get_channel(1),
+					vecindario.get_channel(2) 
+				};
+				
+				//vecindario.save_bmp("vecindario.bmp");
+
+				R[0].sort();
+				R[1].sort();
+				R[2].sort();
+				T acum[] = { T(0), T(0), T(0) };
+				int vecindarioSize = vecindario.size() / 3;
+				for (unsigned i = d; i < vecindarioSize - d; ++i) {
+					acum[0] += R[0](i);
+					acum[1] += R[1](i);
+					acum[2] += R[2](i);
 				}
-				acum /= (vecindario.size() - 2 * d);
-				copia(x, y) = acum;*/
+
+				acum[0] /= (vecindario.size() - 2 * d);
+				acum[1] /= (vecindario.size() - 2 * d);
+				acum[2] /= (vecindario.size() - 2 * d);
+				
+				copia(x, y, 0, 0) = acum[0];
+				copia(x, y, 0, 1) = acum[1];
+				copia(x, y, 0, 2) = acum[2];
 			}
 		}
-		}
 		return copia;
+	}
+
+	template <class T>
+	static inline CImgList<T> filtroFrecuenciaFilaColumna(CImg<T>& imagen, int filas[], int columnas[], int anchos[], int altos[], int nFilasColumnas) {
+		// aca convendría hacer un gauss, pero no tengo tiempo, asi que va a ser filtro ideal.
+		CImgList<T>& fft = imagen.get_FFT();
+		CImg<T>& real = fft[0];
+		CImg<T>& imag = fft[1];
+
+		int alto = real.height(),
+			ancho = real.width();
+
+		real.shift(ancho / 2, alto / 2, 0, 0, 2);
+		imag.shift(ancho / 2, alto / 2, 0, 0, 2);
+
+		for (int i = 0; i < nFilasColumnas; ++i) {
+			cimg_forX(imagen, x) {
+				real(x, filas[i]) = T(0);
+				imag(x, filas[i]) = T(0);
+			}
+			for (int j = 1; j <= anchos[i]/2 ; ++j) {
+				cimg_forX(imagen, x) {
+					real(x, filas[i] - j) = T(0);
+					real(x, filas[i] + j) = T(0);
+
+					imag(x, filas[i] - j) = T(0);
+					imag(x, filas[i] + j) = T(0);
+				}
+			}
+
+			cimg_forY(imagen, y) {
+				real(columnas[i], y) = T(0);
+				imag(columnas[i], y) = T(0);
+			}
+			for (int j = 1; j <= altos[i]/2; ++j) {
+				cimg_forY(imagen, y) {
+					real(columnas[i] - j, y) = T(0);
+					real(columnas[i] + j, y) = T(0);
+					
+					imag(columnas[i] - j, y) = T(0);
+					imag(columnas[i] + j, y) = T(0);
+				}
+			}
+		}
+
+		real.shift(ancho / 2, alto / 2, 0, 0, 2);
+		imag.shift(ancho / 2, alto / 2, 0, 0, 2);
+
+		return fft;
 	}
 
 	template <class T>

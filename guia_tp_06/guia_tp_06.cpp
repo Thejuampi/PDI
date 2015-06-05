@@ -82,6 +82,41 @@ void ejercicio_2_1() {
 	log.log("Ejercicio_2_1()",ss.str());
 }
 
+void ejercicio_3(){
+	cimgd imagen("img/sangre.jpg");
+
+	cimgd& imagenConRuidoGassiano = CImgUtils::agregarRuidoGaussiano(imagen, 11.0);
+	cimgd& imagenConRuidoImpulsivoGaussiano = CImgUtils::agregarRuidoImpulsivo(imagenConRuidoGassiano, 11.0);
+
+	(imagen, imagenConRuidoGassiano, imagenConRuidoImpulsivoGaussiano).display("original, gaussiano, gaussiano+impulsivo");
+
+	// E MUY GUENO
+	cimgd& filtradaMediaAlfaRecortado = CImgUtils::filtroMediaAlfaRecortado(imagenConRuidoImpulsivoGaussiano, 3, 6);
+	cimgd& filtradaPuntoMedio = CImgUtils::filtroPuntoMedio(imagenConRuidoImpulsivoGaussiano, 3);
+	cimgd& gaussConPuntoMedio = CImgUtils::filtroPuntoMedio(imagenConRuidoGassiano, 3);
+
+	(filtradaMediaAlfaRecortado, filtradaPuntoMedio, gaussConPuntoMedio).display("MediaAlfaRecotrado, Sxy = 3, d = 2 -- Punto Medio");
+}
+
+void ejercicio_4() {
+	cimgd imagen("img/img_degradada.tif");
+	//tamaño = 256;
+	//cimgld& fft = imagen.get_FFT();
+	//CImgUtils::showSpectrum(fft);
+	//PICO x = 58, y = 38
+	//PICO x = 58, y = 218;
+	int filas[] = {38, 218},
+		columnas[] = {58, 198},
+		anchos[] = {3, 3},
+		altos[] = {3, 3};
+	cimgld& fft = CImgUtils::filtroFrecuenciaFilaColumna(imagen, filas, columnas, anchos, altos, 2);
+	cimgld& filtradaInversa = fft.get_FFT(true);
+	filtradaInversa[0].display();
+	//CImgUtils::showSpectrum(fft);
+
+	//fft.display("FFT");
+}
+
 void prueba_parcial_1() {
 	cimgf coins("../guia_tp_01/img/coins.tif");
 	cimgf &coins_threshold = coins.get_threshold(171.0f, true);
@@ -136,6 +171,6 @@ const int nEjercicios = 3;
 
 int _tmain(int argc, _TCHAR* argv[])
 {
-	ejercicio_2_1();
+	ejercicio_4();
 	return 0;
 }
