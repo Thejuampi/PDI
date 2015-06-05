@@ -2,7 +2,7 @@
 
 /*
 
-TODO: 
+TODO:
 
 -COLORES: RETORNAR AZUL, ROJO, VERDE, ETC PARA USAR EN RGB O EN HSI
 -FILTROS: IMPLEMENTARLOS POR SU NOMBRE
@@ -168,8 +168,8 @@ public:
 	}
 
 	/*Crea una CImg y le dibuja un círculo en el medio*/
-	template <typename T> 
-	inline static CImg<T> drawCircle(int width, int height, int circleRadius, T &tipo = T(0) ){
+	template <typename T>
+	inline static CImg<T> drawCircle(int width, int height, int circleRadius, T &tipo = T(0)){
 		static T white[] = { T(255) };
 		if (width*height <= 0) throw std::logic_error("Alto o ancho icorrecto/s, revisar los valores");
 		CImg<T> image(width, height, 1, 1, 0);
@@ -738,7 +738,7 @@ public:
 		CImgList<double> isocolors;
 		CImg<> isopoints;
 
-		for (unsigned int i = 0; i<255; i += di) {
+		for (unsigned int i = 0; i < 255; i += di) {
 			CImgList<> prims;
 			const CImg<> &pts = norm.get_isoline3d(prims, (float)i);
 			isopoints.append_object3d(isoprimitives, pts, prims);
@@ -811,7 +811,7 @@ public:
 	}
 
 
-	template <class T = double> 
+	template <class T = double>
 	inline static void showSpectrum(CImgList<T> &fft, boolean center = true, boolean save = false) {
 		CImg<T> &magnitud = CImgUtils::getSpectrum(fft);
 		int alto = magnitud.height();
@@ -826,7 +826,7 @@ public:
 			magnitud.save_bmp("magnitud.bmp");
 		}
 		magnitud.display();
-		
+
 	}
 
 	template <class T> inline static void showPhase(CImgList<T> &fft) {
@@ -837,7 +837,7 @@ public:
 		CImg<T> phase(real.get_fill(T(0)));
 		cimg_forXY(phase, x, y) {
 			T &r = real(x, y); T &i = imag(x, y);
-			phase(x, y) = atan2( i , r );
+			phase(x, y) = atan2(i, r);
 		}
 		phase.display();
 	}
@@ -904,32 +904,221 @@ public:
 			T& val = vecindario(vecindad);
 			copia(x, y) = val;
 		}
+		return copia.normalize(T(0), T(255));
+	}
+
+	/*CUIDADO, usar solo con float o double, no esta diseñado para que ande con enteros*/
+	template <class T>
+	static inline CImg<T> filtroMediaAritmetica(CImg<T> &imagen, unsigned int vecindad) {
+		CImg<T> copia(imagen);
+		if (vecindad % 2 != 0) ++vecindad;
+		T data = 1.0 / (vecindad*vecindad);
+		CImg<T> kernel(vecindad, vecindad, 1, 1, data);
+		copia.convolve(kernel);
+		return copia.normalize(T(0), T(255));
+	}
+
+	template <class T>
+	static inline CImg<T> filtroMediaGeometrica(CImg<T> imagen, unsigned int vecindad){
+		CImg<T> copia(imagen);
+		//if (vecindad % 2 != 0) ++vecindad;
+		vecindad /= 2;
+		if (copia.spectrum() == 1) { //GRISES
+			cimg_forXY(copia, x, y){
+				CImg<T>& vecindario = imagen.get_crop(x - vecindad, y - vecindad, x + vecindad, y + vecindad, true);
+				int vecindarioSize = vecindario.size();
+				T value = T(1);
+				cimg_forXY(vecindario, s, t){
+					value *= vecindario(s, t);
+				}
+				copia(x, y) = pow(value, 1.0 / vecindarioSize);
+			}
+		}
+		else if (copia.spectrum() == 3) { //RGB
+			cimg_forXY(copia, x, y){
+				CImg<T>& vecindario = imagen.get_crop(x - vecindad, y - vecindad, x + vecindad, y + vecindad, true);
+				int vecindarioSize = vecindario.size()/3;
+				T value[] = { T(1), T(1), T(1) };
+				cimg_forXY(vecindario, s, t){
+					value[0] *= vecindario(s, t, 0, 0);
+					value[1] *= vecindario(s, t, 0, 1);
+					value[2] *= vecindario(s, t, 0, 2);
+				}
+				copia(x, y, 0, 0) = pow(value[0], 1.0 / vecindarioSize);
+				copia(x, y, 0, 1) = pow(value[1], 1.0 / vecindarioSize);
+				copia(x, y, 0, 2) = pow(value[2], 1.0 / vecindarioSize);
+			}
+		}
+		return copia.normalize(T(0), T(255));
+	}
+
+	/*TODO validar correcto funcionamiento*/
+	template <class T>
+	static inline CImg<T> filtroMediaArmonica(CImg<T>& imagen, unsigned int vecindad) {
+		CImg<T> normalize(T(0), T(255)); normalize(T(0), T(255)); copia(imagen);
+		//if (vecindad % 2 != 0) ++vecindad;
+		vecindad /= 2;
+		T uno = T(1);
+
+		if (copia.spectrum() == 1) { //GRISES
+			cimg_forXY(copia, x, y){
+				CImg<T>& vecindario = imagen.get_crop(x - vecindad, y - vecindad, x + vecindad, y + vecindad, true);
+				int vecindarioSize = vecindario.size();
+				T acum = T(0);
+				cimg_forXY(vecindario, s, t){
+					acum += uno / vecindario(s, t);
+				}
+				copia(x, y) = vecindarioSize / acum;
+			}
+		}
+		else if (copia.spectrum() == 3) { //RGB
+			cimg_forXY(copia, x, y){
+				CImg<T>& vecindario = imagen.get_crop(x - vecindad, y - vecindad, x + vecindad, y + vecindad, true);
+				int vecindarioSize = vecindario.size()/3;
+				T acum[] = { T(0), T(0), T(0) };
+				cimg_forXY(vecindario, s, t){
+					acum[0] += uno / vecindario(s, t, 0, 0);
+					acum[1] += uno / vecindario(s, t, 0, 1);
+					acum[2] += uno / vecindario(s, t, 0, 2);
+				}
+				copia(x, y, 0, 0) = vecindarioSize / acum[0];
+				copia(x, y, 0, 1) = vecindarioSize / acum[1];
+				copia(x, y, 0, 2) = vecindarioSize / acum[2];
+			}
+		}
+		return copia.normalize(T(0), T(255));
+	}
+
+	template <class T>
+	static inline CImg<T> filtroMediaContraArmonica(CImg<T>& imagen, unsigned int vecindad, double ordenQ){
+		CImg<T> copia(imagen);
+		//if (vecindad % 2 != 0) ++vecindad;
+		vecindad /= 2;
+
+		if (copia.spectrum() == 1) { // GRISES
+			cimg_forXY(copia, x, y){
+				CImg<T>& vecindario = imagen.get_crop(x - vecindad, y - vecindad, x + vecindad, y + vecindad, true);
+				T numeradorAcum = T(0);
+				T denominadorAcum = T(0);
+
+				cimg_forXY(vecindario, s, t) {
+					double aux = pow(vecindario(s, t), ordenQ);
+					denominadorAcum += T(aux); // ^Q
+					numeradorAcum += T(aux*aux); // ^Q+1
+				}
+				copia(x, y) = numeradorAcum / denominadorAcum;
+			}
+
+		}
+		else if (copia.spectrum() == 3) { // RGB
+			cimg_forXY(copia, x, y){
+				CImg<T>& vecindario = imagen.get_crop(x - vecindad, y - vecindad, x + vecindad, y + vecindad, true);
+				T numeradorAcumR = T(0);
+				T denominadorAcumR = T(0);
+
+				T numeradorAcumG = T(0);
+				T denominadorAcumG = T(0);
+
+				T numeradorAcumB = T(0);
+				T denominadorAcumB = T(0);
+
+				cimg_forXY(vecindario, s, t) {
+					double auxR = pow(vecindario(s, t, 0, 0), ordenQ);
+					double auxG = pow(vecindario(s, t, 0, 1), ordenQ);
+					double auxB = pow(vecindario(s, t, 0, 2), ordenQ);
+
+					denominadorAcumR += T(auxR); // ^Q
+					numeradorAcumR += T(auxR*auxR); // ^Q+1
+
+					denominadorAcumG += T(auxG); // ^Q
+					numeradorAcumG += T(auxG*auxG); // ^Q+1
+
+					denominadorAcumB += T(auxB); // ^Q
+					numeradorAcumB += T(auxB*auxB); // ^Q+1
+				}
+				copia(x, y, 0, 0) = numeradorAcumR / denominadorAcumR;
+				copia(x, y, 0, 1) = numeradorAcumG / denominadorAcumG;
+				copia(x, y, 0, 2) = numeradorAcumB / denominadorAcumB;
+			}
+		}
+		return copia.normalize(T(0),T(255));
+	}
+
+	template <class T>
+	static inline CImg<T> filtroMediaAlfaRecortado(CImg<T>& imagen,unsigned int vecindad, unsigned int d) {
+		CImg<T> copia(imagen);
+		d /= 2;
+		vecindad /= 2;
+		if (copia.spectrum() == 1) { // grises
+			cimg_forXY(copia, x, y) {
+				CImg<T> vecindario = imagen.get_crop(x - vecindad, y - vecindad, x + vecindad, y + vecindad, true);
+				vecindario.sort();
+				for (unsigned i = d, T acum = T(0); i <= vecindario.size()-d; ++i) {
+					acum += vecindario(i);
+				}
+				acum /= (vecindario.size() - 2 * d);
+				copia(x, y) = acum;
+			}
+		}
+		else  if (copia.spectrum() == 3) { // rgb
+			cimg_forXY(copia, x, y) {
+				//TODO
+				/*CImg<T> vecindario = imagen.get_crop(x - vecindad, y - vecindad, x + vecindad, y + vecindad, true);
+				vecindario.sort();
+				for (unsigned i = d, T acum = T(0); i <= vecindario.size() - d; ++i) {
+					acum += vecindario(i);
+				}
+				acum /= (vecindario.size() - 2 * d);
+				copia(x, y) = acum;*/
+			}
+		}
+		}
 		return copia;
+	}
+
+	template <class T>
+	static inline CImg<T> agregarRuidoGaussiano(CImg<T>& imagen, double sigma) {
+		return imagen.get_noise(sigma, 0);
+	}
+
+	template <class T>
+	static inline CImg<T> agregarRuidoUniforme(CImg<T>& imagen, double sigma) {
+		return imagen.get_noise(sigma, 1);
+	}
+
+	template <class T>
+	static inline CImg<T> agregarRuidoSalYPimienta(CImg<T>& imagen, double sigma) {
+		return imagen.get_noise(sigma, 2);
+	}
+
+	template<class T>
+	static inline CImg<T> agregarRuidoImpulsivo(CImg<T>& imagen, double sigma) {
+		return agregarRuidoSalYPimienta(imagen, sigma);
 	}
 
 	static CImg<float> new3x3SharpKernel(bool sumaUno = true, bool conDiagonales = true) {
 		CImg<float> kernel(3, 3, 1, 1, 1.0f);
 		float* d = kernel._data;
 		if (conDiagonales&&sumaUno) {
-			*(d+0) = -1.0f; *(d+1) = -1.0f; *(d+2) = -1.0f;
-			*(d+3) = -1.0f; *(d+4) = 9.0f; *(d+5) = -1.0f;
-			*(d+6) = -1.0f; *(d+7) = -1.0f; *(d+8) = -1.0f;
+			*(d + 0) = -1.0f; *(d + 1) = -1.0f; *(d + 2) = -1.0f;
+			*(d + 3) = -1.0f; *(d + 4) = 9.0f; *(d + 5) = -1.0f;
+			*(d + 6) = -1.0f; *(d + 7) = -1.0f; *(d + 8) = -1.0f;
 		}
 		else { //no diagonal o no sumaUno
 			if (conDiagonales && !sumaUno) {
-				*(d+ 0) = -1.0f; *(d+ 1) = -1.0f; *(d+ 2) = -1.0f;
-				*(d+ 3) = -1.0f; *(d+ 4) = 8.0f; *(d+ 5) = -1.0f;
-				*(d+ 6) = -1.0f; *(d+ 7) = -1.0f; *(d+ 8) = -1.0f;
+				*(d + 0) = -1.0f; *(d + 1) = -1.0f; *(d + 2) = -1.0f;
+				*(d + 3) = -1.0f; *(d + 4) = 8.0f; *(d + 5) = -1.0f;
+				*(d + 6) = -1.0f; *(d + 7) = -1.0f; *(d + 8) = -1.0f;
 			}
 			if (!conDiagonales && sumaUno) {
-				*(d+ 0) = -0.0f; *(d+ 1) = -1.0f; *(d+ 2) = -0.0f;
-				*(d+ 3) = -1.0f; *(d+ 4) = 5.0f; *(d+ 5) = -1.0f;
-				*(d+ 6) = -0.0f; *(d+ 7) = -1.0f; *(d+ 8) = -0.0f;
+				*(d + 0) = -0.0f; *(d + 1) = -1.0f; *(d + 2) = -0.0f;
+				*(d + 3) = -1.0f; *(d + 4) = 5.0f; *(d + 5) = -1.0f;
+				*(d + 6) = -0.0f; *(d + 7) = -1.0f; *(d + 8) = -0.0f;
 			}
 			if (!conDiagonales && !sumaUno) {
-				*(d+ 0) = -0.0f; *(d+ 1) = -1.0f; *(d+ 2) = -0.0f;
-				*(d+ 3) = -1.0f; *(d+ 4) = 4.0f; *(d+ 5) = -1.0f;
-				*(d+ 6) = -0.0f; *(d+ 7) = -1.0f; *(d+ 8) = -0.0f;
+				*(d + 0) = -0.0f; *(d + 1) = -1.0f; *(d + 2) = -0.0f;
+				*(d + 3) = -1.0f; *(d + 4) = 4.0f; *(d + 5) = -1.0f;
+				*(d + 6) = -0.0f; *(d + 7) = -1.0f; *(d + 8) = -0.0f;
 			}
 		}
 		return kernel;
@@ -965,11 +1154,11 @@ public:
 	}
 
 	static void cargarPaleta(char* path, std::vector<std::vector<float>> &paleta) {
-		
+
 		std::ifstream archivoPaleta(path);
 		if (archivoPaleta.is_open()) {
 			paleta.clear();
-			paleta.resize(256,std::vector<float>(3)); // 256 filas, 3 columnas;
+			paleta.resize(256, std::vector<float>(3)); // 256 filas, 3 columnas;
 			for (std::vector<float>& rgb : paleta) {
 				float& r = rgb[0];
 				float& g = rgb[1];
@@ -1002,15 +1191,15 @@ public:
 			imagenNueva(x, y, 0, 1) = fila[1];
 			imagenNueva(x, y, 0, 2) = fila[2];
 		}
-		imagenNueva.normalize(T(0),T(255));
+		imagenNueva.normalize(T(0), T(255));
 	}
 
-	template<class T> 
+	template<class T>
 	static inline void aplicarColor(CImg<T> &imagenOriginal, CImg<T> &imagenModificada, T* valorBuscado, int radio, T* valorNuevo) {
 		imagenModificada.clear();
 		imagenModificada.resize(imagenOriginal.width(), imagenOriginal.height(), 1, 3, -1);
-		
-		cimg_forXY(imagenOriginal,x,y) {
+
+		cimg_forXY(imagenOriginal, x, y) {
 			T& rOriginal = imagenOriginal(x, y, 0, 0);
 			if (imagenOriginal.spectrum() == 3){
 				T& gOriginal = imagenOriginal(x, y, 0, 1);
@@ -1021,7 +1210,7 @@ public:
 				T auxB = bOriginal - valorBuscado[2];
 
 				bool criterio = (auxR*auxR + auxG*auxG + auxB*auxB) <= radio*radio;
-				
+
 				if (criterio) {
 					imagenModificada(x, y, 0, 0) = valorNuevo[0];
 					imagenModificada(x, y, 0, 1) = valorNuevo[1];
@@ -1034,7 +1223,7 @@ public:
 				}
 			}
 			else {
-				if ( abs(rOriginal - valorBuscado[0]) <= radio){
+				if (abs(rOriginal - valorBuscado[0]) <= radio){
 					imagenModificada(x, y, 0, 0) = valorNuevo[0];
 					imagenModificada(x, y, 0, 1) = valorNuevo[1];
 					imagenModificada(x, y, 0, 2) = valorNuevo[2];
@@ -1051,7 +1240,7 @@ public:
 
 	template <class T>
 	static void inline aplicarColorHSI(CImg<T>& imagenOriginal, CImg<T>& imagenModificada, T colorBuscado[], int radio, T colorNuevo[]) {
-		if (imagenOriginal.spectrum() < 3) {throw std::runtime_error("La imagen debe tener 3 canales para operar");}
+		if (imagenOriginal.spectrum() < 3) { throw std::runtime_error("La imagen debe tener 3 canales para operar"); }
 		imagenModificada = imagenOriginal; //copia
 		imagenModificada.RGBtoHSI();
 		int radioCuadrado = radio*radio;
@@ -1064,7 +1253,8 @@ public:
 			if (criterio) {
 				h = colorNuevo[0];
 				s = colorNuevo[1];
-;			}
+				;
+			}
 		}
 		imagenModificada.HSItoRGB();
 	}

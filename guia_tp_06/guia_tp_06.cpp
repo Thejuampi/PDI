@@ -59,13 +59,27 @@ void ejercicio_1_2() {
 
 }
 
-
 void ejercicio_2_1() {
-	cimgf imagen(camPath);
-	imagen.resize(512, 512, -100, -100, 6);
-	imagen.get_noise(20, 2);
-	cimgf imagenFiltrada = CImgUtils::filtroMediana(imagen, 2);
-	imagenFiltrada.display();
+	cimgd imagen("img/sangre.jpg");
+	
+	cimgd& imagenConRuidoGassiano = CImgUtils::agregarRuidoGaussiano(imagen, 11.0);
+	cimgd& imagenConRuidoImpulsivoGaussiano = CImgUtils::agregarRuidoImpulsivo(imagenConRuidoGassiano, 11.0);
+
+	(imagen, imagenConRuidoGassiano, imagenConRuidoImpulsivoGaussiano).display("original, gaussiano, gaussiano+impulsivo");
+
+	cimgd& filtradaConGeometrica = CImgUtils::filtroMediaGeometrica(imagenConRuidoImpulsivoGaussiano, 3);
+	cimgd& filtradaConContraArmonicaPositivo = CImgUtils::filtroMediaContraArmonica(imagenConRuidoImpulsivoGaussiano, 3, 0.5);
+	cimgd& filtradaConContraArmonicaNegativo = CImgUtils::filtroMediaContraArmonica(imagenConRuidoImpulsivoGaussiano, 3, -0.5);
+
+	(filtradaConGeometrica, filtradaConContraArmonicaPositivo, filtradaConContraArmonicaNegativo).display("Geometrica - ContraArmonica 0.5 - Contra Armonica -0.5");
+	TjpLogger& log = TjpLogger::getInstance();
+
+	std::stringstream ss;
+	ss << "ECM Geometrica " << filtradaConGeometrica.MSE(imagen) << "\n"
+		<< "ECM ContraArmonica Q = 0.5" << filtradaConContraArmonicaPositivo.MSE(imagen) << "\n"
+		<< "ECM ContraArmonica Q = -0.5" << filtradaConContraArmonicaNegativo.MSE(imagen) << "\n";
+
+	log.log("Ejercicio_2_1()",ss.str());
 }
 
 void prueba_parcial_1() {
@@ -91,6 +105,27 @@ void prueba_parcial_1() {
 	imagenes.display();
 }
 
+void prueba_parcial_2() {
+	cimgf coins("../guia_tp_01/img/coins.tif");
+	cimgf mascara = CImgUtils::new3x3SharpKernel(true, true);
+
+	cimgf& primeroEqualizado = coins.get_equalize(255);
+	primeroEqualizado.convolve(mascara);
+
+	cimgf& primeroAcentuado = coins.get_convolve(mascara);
+	primeroAcentuado.equalize(255);
+
+	primeroAcentuado.normalize(0,255);
+	primeroEqualizado.normalize(0,255);
+	
+
+
+	cimglf imagenes;
+	imagenes.push_back(primeroAcentuado).push_back(primeroEqualizado);
+
+	imagenes.display();
+}
+
 const ejercicio ejercicios[] = {
 	ejercicio_1_1,
 	ejercicio_1_2,
@@ -101,7 +136,6 @@ const int nEjercicios = 3;
 
 int _tmain(int argc, _TCHAR* argv[])
 {
-	//ejercicios[nEjercicios - 1]();
-	prueba_parcial_1();
+	ejercicio_2_1();
 	return 0;
 }
