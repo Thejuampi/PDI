@@ -9,6 +9,7 @@ TODO:
 
 */
 
+#include <algorithm>    // std::sort
 #include <cmath> // fabs
 #include <string>
 #include <vector>
@@ -21,6 +22,18 @@ TODO:
 #include "TjpLogger.h"
 
 using namespace cimg_library;
+
+template<class T>
+struct Pixel {
+	int x;
+	int y;
+	T value;
+
+	template<class T>
+	friend inline bool operator<(const Pixel<T> &m0, const Pixel<T> &m1) {
+		return m0.value < m1.value;
+	}
+};
 
 template <class T = unsigned char> class Punto{
 private:
@@ -965,7 +978,7 @@ public:
 		else if (copia.spectrum() == 3) { //RGB
 			cimg_forXY(copia, x, y){
 				CImg<T>& vecindario = imagen.get_crop(x - vecindad, y - vecindad, x + vecindad, y + vecindad, true);
-				int vecindarioSize = vecindario.size()/3;
+				int vecindarioSize = vecindario.size() / 3;
 				T value[] = { T(1), T(1), T(1) };
 				cimg_forXY(vecindario, s, t){
 					value[0] *= vecindario(s, t, 0, 0);
@@ -1002,7 +1015,7 @@ public:
 		else if (copia.spectrum() == 3) { //RGB
 			cimg_forXY(copia, x, y){
 				CImg<T>& vecindario = imagen.get_crop(x - vecindad, y - vecindad, x + vecindad, y + vecindad, true);
-				int vecindarioSize = vecindario.size()/3;
+				int vecindarioSize = vecindario.size() / 3;
 				T acum[] = { T(0), T(0), T(0) };
 				cimg_forXY(vecindario, s, t){
 					acum[0] += uno / vecindario(s, t, 0, 0);
@@ -1069,11 +1082,11 @@ public:
 				copia(x, y, 0, 2) = numeradorAcumB / denominadorAcumB;
 			}
 		}
-		return copia.normalize(T(0),T(255));
+		return copia.normalize(T(0), T(255));
 	}
 
 	template <class T>
-	static inline CImg<T> filtroMediaAlfaRecortado(CImg<T>& imagen,unsigned int vecindad, unsigned int d) {
+	static inline CImg<T> filtroMediaAlfaRecortado(CImg<T>& imagen, unsigned int vecindad, unsigned int d) {
 		CImg<T> copia(imagen);
 		d /= 2;
 		vecindad /= 2;
@@ -1082,7 +1095,7 @@ public:
 				CImg<T>& vecindario = imagen.get_crop(x - vecindad, y - vecindad, x + vecindad, y + vecindad, true);
 				vecindario.sort();
 				T acum = T(0);
-				for (unsigned i = d; i <= vecindario.size()-d; ++i) {
+				for (unsigned i = d; i <= vecindario.size() - d; ++i) {
 					acum += vecindario(i);
 				}
 				acum /= (vecindario.size() - 2 * d);
@@ -1095,9 +1108,9 @@ public:
 				CImg<T> R[] = {
 					vecindario.get_channel(0),
 					vecindario.get_channel(1),
-					vecindario.get_channel(2) 
+					vecindario.get_channel(2)
 				};
-				
+
 				//vecindario.save_bmp("vecindario.bmp");
 
 				R[0].sort();
@@ -1114,7 +1127,7 @@ public:
 				acum[0] /= (vecindario.size() - 2 * d);
 				acum[1] /= (vecindario.size() - 2 * d);
 				acum[2] /= (vecindario.size() - 2 * d);
-				
+
 				copia(x, y, 0, 0) = acum[0];
 				copia(x, y, 0, 1) = acum[1];
 				copia(x, y, 0, 2) = acum[2];
@@ -1124,7 +1137,7 @@ public:
 	}
 
 	template <class T>
-	static inline CImgList<T> filtroFrecuenciaFilaColumna(CImg<T>& imagen, int filas[], int columnas[], int anchos[], int altos[], int nFilasColumnas) {
+	static inline CImg<T> filtroFrecuenciaFilaColumna(CImg<T>& imagen, int filas[], int columnas[], int anchos[], int altos[], int nFilasColumnas) {
 		// aca convendría hacer un gauss, pero no tengo tiempo, asi que va a ser filtro ideal.
 		CImgList<T>& fft = imagen.get_FFT();
 		CImg<T>& real = fft[0];
@@ -1141,7 +1154,7 @@ public:
 				real(x, filas[i]) = T(0);
 				imag(x, filas[i]) = T(0);
 			}
-			for (int j = 1; j <= anchos[i]/2 ; ++j) {
+			for (int j = 1; j <= anchos[i] / 2; ++j) {
 				cimg_forX(imagen, x) {
 					real(x, filas[i] - j) = T(0);
 					real(x, filas[i] + j) = T(0);
@@ -1155,11 +1168,11 @@ public:
 				real(columnas[i], y) = T(0);
 				imag(columnas[i], y) = T(0);
 			}
-			for (int j = 1; j <= altos[i]/2; ++j) {
+			for (int j = 1; j <= altos[i] / 2; ++j) {
 				cimg_forY(imagen, y) {
 					real(columnas[i] - j, y) = T(0);
 					real(columnas[i] + j, y) = T(0);
-					
+
 					imag(columnas[i] - j, y) = T(0);
 					imag(columnas[i] + j, y) = T(0);
 				}
@@ -1169,7 +1182,8 @@ public:
 		real.shift(ancho / 2, alto / 2, 0, 0, 2);
 		imag.shift(ancho / 2, alto / 2, 0, 0, 2);
 
-		return fft;
+		CImgList<T> inversa = fft.get_FFT(true);
+		return inversa[0];
 	}
 
 	template <class T>
@@ -1220,7 +1234,6 @@ public:
 		return kernel;
 	}
 
-	/*TODO: TERMINAR*/
 	static CImg<float> new3x3SmothKernel(bool sumaUno = true, bool conDiagonales = true) {
 		CImg<float> kernel(3, 3, 1, 1, 1.0f);
 		float* d = kernel._data;
@@ -1263,12 +1276,10 @@ public:
 				archivoPaleta >> g;
 				archivoPaleta >> b;
 			}
-
 		}
 		else {
 			throw std::runtime_error("No se pudo abrir la paleta");
 		}
-
 	}
 
 	template <class T>
@@ -1349,10 +1360,431 @@ public:
 			if (criterio) {
 				h = colorNuevo[0];
 				s = colorNuevo[1];
-				;
 			}
 		}
 		imagenModificada.HSItoRGB();
+	}
+
+	template <class T>
+	static inline CImg<T> detectorBordesRoberts(CImg<T>& imagen) {
+		static CImg<T> mascaraGx(3, 3, 1, 1,
+			0.0, 0.0, 0.0,
+			0.0, -1.0, 0.0,
+			0.0, 0.0, 1.0
+			);
+		static CImg<T> mascaraGy(3, 3, 1, 1,
+			0.0, 0.0, 0.0,
+			0.0, 0.0, -1.0,
+			0.0, 1.0, 0.0
+			);
+
+		CImg<T> Gx = imagen.get_convolve(mascaraGx);
+		Gx.abs();
+		CImg<T> Gy = imagen.get_convolve(mascaraGy);
+		Gy.abs();
+		return (Gx + Gy).normalize(0, 255);
+	}
+
+	template <class T>
+	static inline CImg<T> detectorBordesPrewitt(CImg<T>& imagen) {
+		static CImg<T> mascaraGx(3, 3, 1, 1,
+			-1.0, -1.0, -1.0,
+			0.0, 0.0, 0.0,
+			1.0, 1.0, 1.0
+			);
+		static CImg<T> mascaraGy(3, 3, 1, 1,
+			-1.0, 0.0, 1.0,
+			-1.0, 0.0, 1.0,
+			-1.0, 0.0, 1.0
+			);
+		CImg<T> Gx = imagen.get_convolve(mascaraGx);
+		Gx.abs();
+		CImg<T> Gy = imagen.get_convolve(mascaraGy);
+		Gy.abs();
+		return (Gx + Gy).normalize(0, 255);
+	}
+
+	template <class T>
+	static inline CImg<T> detectorBordesPrewittDiagonal(CImg<T>& imagen) {
+		static CImg<T> mascaraGx(3, 3, 1, 1,
+			0.0, 1.0, 1.0,
+			-1.0, 0.0, 1.0,
+			-1.0, -1.0, 0.0
+			);
+		static CImg<T> mascaraGy(3, 3, 1, 1,
+			-1.0, -1.0, 0.0,
+			-1.0, 0.0, 1.0,
+			0.0, 1.0, 1.0
+			);
+
+		CImg<T> Gx = imagen.get_convolve(mascaraGx);
+		Gx.abs();
+		CImg<T> Gy = imagen.get_convolve(mascaraGy);
+		Gy.abs();
+		return (Gx + Gy).normalize(0, 255);
+	}
+
+	template <class T>
+	static inline CImg<T> detectorBordesSobel(CImg<T>& imagen) {
+		static CImg<T> mascaraGx(3, 3, 1, 1,
+			-1.0, -2.0, -1.0,
+			0.0, 0.0, 0.0,
+			1.0, 2.0, 1.0
+			);
+		static CImg<T> mascaraGy(3, 3, 1, 1,
+			-1.0, 0.0, 1.0,
+			-2.0, 0.0, 2.0,
+			-1.0, 0.0, 1.0
+			);
+		CImg<T> Gx = imagen.get_convolve(mascaraGx);
+		Gx.abs();
+		CImg<T> Gy = imagen.get_convolve(mascaraGy);
+		Gy.abs();
+		return (Gx + Gy).normalize(0, 255);
+	}
+
+	template <class T>
+	static inline CImg<T> detectorBordesSobelDiagonales(CImg<T>& imagen) {
+		static CImg<T> mascaraGx(3, 3, 1, 1,
+			0.0, 1.0, 2.0,
+			-1.0, 0.0, 1.0,
+			-2.0, -1.0, 0.0
+			);
+		static CImg<T> mascaraGy(3, 3, 1, 1,
+			-2.0, -1.0, 0.0,
+			-1.0, 0.0, 1.0,
+			0.0, 1.0, 2.0
+			);
+
+		CImg<T> Gx = imagen.get_convolve(mascaraGx);
+		Gx.abs();
+		CImg<T> Gy = imagen.get_convolve(mascaraGy);
+		Gy.abs();
+		return (Gx + Gy).normalize(0, 255);
+	}
+
+	template<class T>
+	static inline CImg<T> detectorBordesRoberts(CImg<T>& imagen, T umbral) {
+		CImg<T>& bordes = detectorBordesRoberts(imagen);
+		bordes.threshold(umbral);
+		return bordes.normalize(0, 255);
+	}
+
+	template <class T>
+	static inline CImg<T> detectorBordesPrewitt(CImg<T>& imagen, T umbral) {
+		CImg<T> &bordes = detectorBordesPrewitt(imagen);
+		bordes.threshold(umbral);
+		return bordes.normalize(0, 255);
+	}
+
+	template <class T>
+	static inline CImg<T> detectorBordesPrewittDiagonal(CImg<T>& imagen, T umbral) {
+		CImg<T> &bordes = detectorBordesPrewittDiagonal(imagen);
+		bordes.threshold(umbral);
+		return bordes.normalize(0, 255);
+	}
+
+	template <class T>
+	static inline CImg<T> detectorBordesSobel(CImg<T>& imagen, T umbral) {
+		CImg<T> &bordes = detectorBordesSobel(imagen);
+		bordes.threshold(umbral);
+		return bordes.normalize(0, 255);
+	}
+
+	template <class T>
+	static inline CImg<T> detectorBordesSobelDiagonales(CImg<T>& imagen, T umbral) {
+		CImg<T> &bordes = detectorBordesSobelDiagonales(imagen);
+		bordes.threshold(umbral);
+		return bordes.normalize(0, 255);
+	}
+
+	template <class T>
+	static inline CImg<T> detectorBordesLaplacianoN4(CImg<T>& imagen, T umbral = T(-1)) {
+		CImg<T>& mascara = new3x3SharpKernel(false, false);
+		CImg<T>& bordes = imagen.get_convolve(mascara);
+		if (umbral != T(-1)){
+			bordes.threshold(umbral);
+		}
+		return bordes;
+	}
+
+	template <class T>
+	static inline CImg<T> detectorBordesLaplacianoN8(CImg<T>& imagen, T umbral = T(-1)) {
+		CImg<T>& mascara = new3x3SharpKernel(false, true);
+		CImg<T>& bordes = imagen.get_convolve(mascara);
+		if (umbral != T(-1)){
+			bordes.threshold(umbral);
+		}
+		return bordes;
+	}
+
+	template<class T>
+	static inline CImg<T> detectorBordesLoG(CImg<T>& imagen, T desvio) {
+		throw std::runtime_error("Not yet implemented");
+		return imagen;
+	}
+
+	///****************************************
+	/// Crecimiento de regiones
+	///****************************************
+	static inline CImg<unsigned char> region_growing(CImg<unsigned char> orig, int x, int y, int delta, int etiqueta){
+		// orig: imagen a procesar
+		// x,y: posición de la semilla
+		// delta: define el rango de pertenencia como [semilla-delta/2, semilla+delta/2]
+		// etiqueta: nro de la etiqueta, no debe pertenecer al rango
+
+		//Basicamente pinto la semilla y la pongo en la cola
+		//despues tomo el primer nodo de la cola como referencia (a su vez lo elimino de la cola),
+		// miro sus vecinos, los pinto y los agrego al final de la cola
+
+		struct node{
+			int x;
+			int y;
+		}node;
+		// armo el rango
+		int valor = orig(x, y);
+		int rango_min = valor - delta / 2,
+			rango_max = valor + delta / 2 + delta % 2; //para delta impar suma 1 para delta par suma 0
+		if (rango_min < 0) rango_min = 0;
+		if (rango_max > 255) rango_max = 255;
+
+		//muestro en pantalla y controlo etiqueta
+		//cout << "semilla: " << valor << " rango: [" << rango_min << "," << rango_max << "] etiqueta: " << etiqueta << endl;
+		//if (etiqueta >= rango_min && etiqueta <= rango_max){
+		//	cout << "error: la etiqueta (" << etiqueta << ") no puede pertenecer al rango, vuelva a elegir" << endl;
+		//	cout << "etiqueta: ";
+		//	cin >> etiqueta;
+		//}
+		CImg<> dest(orig);
+		std::vector<int> camino;
+
+		dest(x, y) = etiqueta;
+		//agrego el nodo (x,y) al final de la cola sólo por una cuestion de inicializacion
+		//para que el erase del while tenga sentido en la primer ejecucion
+		camino.push_back(x);
+		camino.push_back(y);
+		//mientras exista cola
+		while (camino.size() != 0){
+			//     cout<<camino.size()<<" ";
+			//tomo los dos primeros valores de la cola
+			node.x = camino[0];
+			node.y = camino[1];
+
+			//elimino el nodo de la cola xq ya lo tengo pintado
+			camino.erase(camino.begin(), camino.begin() + 2);
+
+			//miro a la derecha
+			if ((node.x + 1 > 0) && (node.x + 1 < dest.width()))
+				if ((node.y > 0) && (node.y < dest.height()))
+					if (dest(node.x + 1, node.y) >= rango_min && dest(node.x + 1, node.y) <= rango_max){
+						//si esta en el rango lo pinto y agrego el nodo nuevo al final de la cola
+						dest(node.x + 1, node.y) = etiqueta;
+						camino.push_back(node.x + 1);
+						camino.push_back(node.y);
+					}
+			//miro a la izquierda
+			if ((node.x - 1 > 0) && (node.x - 1 < dest.width()))
+				if ((node.y > 0) && (node.y < dest.height()))
+					if (dest(node.x - 1, node.y) >= rango_min && dest(node.x - 1, node.y) <= rango_max){
+						//si esta en el rango lo pinto y agrego el nodo nuevo al final de la cola
+						dest(node.x - 1, node.y) = etiqueta;
+						camino.push_back(node.x - 1);
+						camino.push_back(node.y);
+					}
+			//miro abajo
+			if ((node.x > 0) && (node.x < dest.width()))
+				if ((node.y + 1 > 0) && (node.y + 1 < dest.height()))
+					if (dest(node.x, node.y + 1) >= rango_min && dest(node.x, node.y + 1) <= rango_max){
+						//si esta en el rango lo pinto y agrego el nodo nuevo al final de la cola
+						dest(node.x, node.y + 1) = etiqueta;
+						camino.push_back(node.x);
+						camino.push_back(node.y + 1);
+					}
+			//miro arriba
+			if ((node.x > 0) && (node.x < dest.width()))
+				if ((node.y - 1 > 0) && (node.y - 1 < dest.height()))
+					if (dest(node.x, node.y - 1) >= rango_min && dest(node.x, node.y - 1) <= rango_max){
+						//si esta en el rango lo pinto y agrego el nodo nuevo al final de la cola
+						dest(node.x, node.y - 1) = etiqueta;
+						camino.push_back(node.x);
+						camino.push_back(node.y - 1);
+					}
+		}
+		return dest;
+	}
+
+
+	///****************************************
+	/// Etiquetado de componentes conectadas
+	///****************************************
+	static inline CImg<int> label_cc(CImg<int> img, int blanco = 1, int nueva_etiqueta = 2){
+
+		std::vector<int> equiv(nueva_etiqueta + 1, 0); //vector de equivalencias
+		std::vector<int> vecinos;                   //vector de etiquetas vecinos superiores e izquierda
+		int pos, etiqueta, aux;
+
+		cimg_forXY(img, x, y){           // recorro la imagen
+			if (img(x, y) == blanco){       // si es blanco
+				vecinos.clear();           // inicializo 
+				if (x && y)                // si x no es borde izq e y no es borde superior miro el vecino sup izq
+					if (img(x - 1, y - 1) != 0)  vecinos.push_back(img(x - 1, y - 1)); // si tiene etiqueta la guardo
+				if (y)                     // si y no es borde superior miro vecino superior
+					if (img(x, y - 1) != 0)    vecinos.push_back(img(x, y - 1));   // si tiene etiqueta la guardo
+				if (y && x != img.width() - 1)  // si x no es borde derecho e y borde superior miro vecino sup der
+					if (img(x + 1, y - 1) != 0)  vecinos.push_back(img(x + 1, y - 1)); // si tiene etiqueta la guardo
+				if (x)                     // si x no es borde izquierdo miro vecino izq
+					if (img(x - 1, y) != 0)    vecinos.push_back(img(x - 1, y));   // si tiene etiqueta la guardo
+				if (vecinos.empty()) {     // si no tengo vecinos etiquetados debo generar nueva etiqueta
+					vecinos.push_back(nueva_etiqueta); // de vecinos voy a sacar la etiqueta que corresponde al pixel
+					equiv[nueva_etiqueta] = nueva_etiqueta; // guardo en la posicion nva etiqueta el valor nva etiqueta
+					nueva_etiqueta++;        // genero una nueva etiqueta para cdo necesite
+					equiv.push_back(0);      // agrego una posicion en equivalencias con 0
+				}
+				else {
+					for (int i = 0; i < vecinos.size() - 1; i++)  // controlo la lista de etiquetas vecinas
+						if (vecinos[i] != vecinos[i + 1]){ // si hay diferentes etiquetas en el vecindario anoto
+							etiqueta = vecinos[i];
+							pos = vecinos[i + 1];
+							if (pos < etiqueta){ // en la pos de la mayor etiqueta anoto el valor de la menor 
+								aux = etiqueta;
+								etiqueta = pos;
+								pos = aux;
+							}
+							if (equiv[pos] != etiqueta){ // si tengo una entrada en esa pos reviso la cadena
+								if (equiv[pos] != pos){
+									aux = etiqueta;
+									etiqueta = equiv[pos];
+									pos = aux;
+									while (equiv[pos] != pos)
+										pos = equiv[pos];
+									if (equiv[pos] < etiqueta)
+										etiqueta = equiv[pos];
+								}
+								equiv[pos] = etiqueta;
+							}
+						}
+				}
+				img(x, y) = vecinos.front(); // asigno etiqueta
+			}
+		}
+		img.display("Primera Pasada");
+
+		// Muestro como quedo la tabla
+		//cout << "Tabla de equivalencias" << endl << endl;
+		//for (int j = 0; j<equiv.size(); j++)
+		//	cout << j << " " << equiv[j] << endl;
+		//cout << endl;
+
+		// reasigno la etiqueta
+		cimg_forXY(img, x, y)
+			if (img(x, y) != 0)
+				if (equiv[img(x, y)] != img(x, y)){
+					etiqueta = equiv[img(x, y)];
+					while (equiv[etiqueta] != etiqueta)
+						etiqueta = equiv[etiqueta];
+					img(x, y) = etiqueta;
+				}
+
+		return img;
+	}
+
+	///****************************************
+	/// Transformada Hough directa e inversa
+	///****************************************
+	static inline CImg<double> transformadaHough(CImg<double>& img, bool inverse = false) {
+
+		CImg<double> iHough(img); iHough.fill(0.0);
+		const unsigned M = img.width(),
+			N = img.height();
+
+		double max_rho = sqrt(float(pow(N - 1, 2) + pow(M - 1, 2))), //maximo valor posible de radio se da en la diagonal pcipal
+			step_rho = 2.*max_rho / (N - 1), //paso en eje rho (rho=[-max_rho , max_rho])
+			step_theta = M_PI / (M - 1),     //paso en eje theta (M_PI=pi) (theta=[-90,90])
+			rho, theta;
+
+		if (!inverse){
+			int r;  // radio mapeado en los N pixeles
+			cimg_forXY(img, y, x){
+				if (img(y, x) > 0.5)
+					for (int t = 0; t < M; t++) { //calculo rho variando theta en todo el eje, con x e y fijo
+						theta = t*step_theta - M_PI / 2;  // mapea t en [0,M-1] a t en [-90,90]
+						rho = x*cos(theta) + y*sin(theta); // calcula rho para cada theta
+						r = floor((rho + max_rho) / step_rho + .5); // mapea r en [-max_rho , max_rho] a r en [0,N-1] el floor(r+.5) sirve para redondear
+						iHough(t, r) += 1;               // suma el acumulador     
+					}
+			}
+		}
+		else{
+			const double blanco[1] = { 255.f };
+			float x0, x1, y0, y1;
+			cimg_forXY(img, t, r){
+				if (img(t, r) > 0.5) {
+					theta = t*step_theta - M_PI / 2;   // mapea t en [0,M-1] a t en [-90,90]
+					rho = r*step_rho - max_rho;      // mapea r en [0,N-1] a r en [-max_rho,max_rho]
+					if (theta > -M_PI / 2 && theta < M_PI / 2){
+						y0 = 0; y1 = M - 1;
+						x0 = rho / cos(theta);      // calcula y para y=0
+						x1 = rho / cos(theta) - (M - 1)*tan(theta); // calcula y para y=M-1	  
+					}
+					else{
+						x0 = 0; x1 = N - 1;
+						y0 = rho / sin(theta);      // calcula y para x=0
+						y1 = rho / sin(theta) - (N - 1) / tan(theta); // calcula y para x=M-1
+					}
+					//cout<<endl<<"("<<t<<","<<r<<")->("<<theta<<","<<rho<<") "<<"("<<y0<<","<<x0<<")->("<<y1<<","<<x1<<")"<<endl;
+					iHough.draw_line(y0, x0, y1, x1, blanco); // dibuja una línea de (0,y0) a (M-1,y1)
+				}
+			}
+		}
+		return iHough;
+	}
+
+	template <typename T>
+	static inline bool evaluarCercaniaHough(Pixel<T>& p0,
+		typename std::vector< Pixel<T> >::iterator& begin,
+		typename std::vector< Pixel<T> >::iterator& end,
+		int r, int t)
+	{
+		std::vector<Pixel<T>>::iterator it(begin);
+		while (it != end) {
+			Pixel<T>& val = *it++;
+			if (  abs(p0.y-val.y) < r && abs(p0.x-val.x) < t ){
+				return false;
+			}
+		}
+		return true;
+	}
+
+	template <class T>
+	static std::vector<Pixel<T> > obtenerLosMaximos(CImg<T>& imagen, unsigned int cantidad, bool descartarCercanos = false, int r = 10, int t = 10) {
+		std::vector<Pixel<T> > copia1D(imagen.size() / imagen.spectrum());
+		{
+			int i = 0;
+			cimg_forXY(imagen, x, y) {
+				auto& v = copia1D[i++];
+				v.x = x;
+				v.y = y;
+				v.value = imagen(x, y, 0, 0);
+			}
+		}
+		std::sort(copia1D.begin(), copia1D.end());
+		std::vector<Pixel<T> > result(cantidad);
+		result[0] = copia1D[copia1D.size() - 1]; // el maximo de todos.
+		if (descartarCercanos) {
+			for (int i = 1, j = 1; i < cantidad && j < copia1D.size(); ++j){
+				auto& punto = copia1D[copia1D.size() - 1 - j];
+				//if (abs(punto.x - result[i - 1].x) + abs(punto.y - result[i - 1].y) > 4) {
+				if (evaluarCercaniaHough(punto, result.begin(), result.begin() + i ,r,t) ) {
+					result[i++] = punto;
+				}
+			}
+		}
+		else {
+			for (int i = 0; i < cantidad; ++i) {
+				result[i] = copia1D[copia1D.size() - 1 - i];
+			}
+		}
+		return result;
 	}
 
 };

@@ -109,12 +109,8 @@ void ejercicio_4() {
 		columnas[] = {58, 198},
 		anchos[] = {3, 3},
 		altos[] = {3, 3};
-	cimgld& fft = CImgUtils::filtroFrecuenciaFilaColumna(imagen, filas, columnas, anchos, altos, 2);
-	cimgld& filtradaInversa = fft.get_FFT(true);
-	filtradaInversa[0].display();
-	//CImgUtils::showSpectrum(fft);
-
-	//fft.display("FFT");
+	cimgd& filtrada = CImgUtils::filtroFrecuenciaFilaColumna(imagen, filas, columnas, anchos, altos, 2);
+	filtrada.display();
 }
 
 void prueba_parcial_1() {
