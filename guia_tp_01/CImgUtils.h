@@ -364,19 +364,19 @@ public:
 		if (righ.size() != left.size()) {
 			right.resize(left);
 		}
-		cimg_forxy(result, x, y){
-			result(x, y) = (left(x, y) & 1) ^ (right(x, y) & 1) ? T(255), T(0);
+		cimg_forXY(result, x, y){
+			result(x, y) = (left(x, y) & 1) ^ (right(x, y) & 1) ? T(255) : T(0);
 		}
 		return result;
 	}
 
 	template <class T> static inline CImg<T> AND(CImg<T> &left, CImg<T> &right) {
 		CImg<T> &result = left.get_fill(0);
-		if (righ.size() != left.size()) {
+		if (right.size() != left.size()) {
 			right.resize(left);
 		}
-		cimg_forxy(result, x, y){
-			result(x, y) = left(x, y) && right(x, y) ? T(255), T(0);
+		cimg_forXY(result, x, y){
+			result(x, y) = left(x, y) && right(x, y) ? T(255) : T(0);
 		}
 		return result;
 	}
@@ -386,8 +386,8 @@ public:
 		if (righ.size() != left.size()) {
 			right.resize(left);
 		}
-		cimg_forxy(result, x, y){
-			result(x, y) = left(x, y) || right(x, y) ? T(255), T(0);
+		cimg_forXY(result, x, y){
+			result(x, y) = left(x, y) || right(x, y) ? T(255) : T(0);
 		}
 		return result;
 	}
@@ -1527,7 +1527,7 @@ public:
 	///****************************************
 	/// Crecimiento de regiones
 	///****************************************
-	static inline CImg<unsigned char> region_growing(CImg<unsigned char> orig, int x, int y, int delta, int etiqueta){
+	static inline CImg<unsigned char> regionGrowing(CImg<unsigned char> &orig, int x, int y, int delta, int etiqueta){
 		// orig: imagen a procesar
 		// x,y: posición de la semilla
 		// delta: define el rango de pertenencia como [semilla-delta/2, semilla+delta/2]
@@ -1574,41 +1574,49 @@ public:
 			camino.erase(camino.begin(), camino.begin() + 2);
 
 			//miro a la derecha
-			if ((node.x + 1 > 0) && (node.x + 1 < dest.width()))
-				if ((node.y > 0) && (node.y < dest.height()))
+			if ((node.x + 1 > 0) && (node.x + 1 < dest.width())) {
+				if ((node.y > 0) && (node.y < dest.height())) {
 					if (dest(node.x + 1, node.y) >= rango_min && dest(node.x + 1, node.y) <= rango_max){
 						//si esta en el rango lo pinto y agrego el nodo nuevo al final de la cola
 						dest(node.x + 1, node.y) = etiqueta;
 						camino.push_back(node.x + 1);
 						camino.push_back(node.y);
 					}
+				}
+			}
 			//miro a la izquierda
-			if ((node.x - 1 > 0) && (node.x - 1 < dest.width()))
-				if ((node.y > 0) && (node.y < dest.height()))
+			if ((node.x - 1 > 0) && (node.x - 1 < dest.width())){
+				if ((node.y > 0) && (node.y < dest.height())) {
 					if (dest(node.x - 1, node.y) >= rango_min && dest(node.x - 1, node.y) <= rango_max){
 						//si esta en el rango lo pinto y agrego el nodo nuevo al final de la cola
 						dest(node.x - 1, node.y) = etiqueta;
 						camino.push_back(node.x - 1);
 						camino.push_back(node.y);
 					}
+				}
+			}
 			//miro abajo
-			if ((node.x > 0) && (node.x < dest.width()))
-				if ((node.y + 1 > 0) && (node.y + 1 < dest.height()))
+			if ((node.x > 0) && (node.x < dest.width())) {
+				if ((node.y + 1 > 0) && (node.y + 1 < dest.height())) {
 					if (dest(node.x, node.y + 1) >= rango_min && dest(node.x, node.y + 1) <= rango_max){
 						//si esta en el rango lo pinto y agrego el nodo nuevo al final de la cola
 						dest(node.x, node.y + 1) = etiqueta;
 						camino.push_back(node.x);
 						camino.push_back(node.y + 1);
 					}
+				}
+			}
 			//miro arriba
-			if ((node.x > 0) && (node.x < dest.width()))
-				if ((node.y - 1 > 0) && (node.y - 1 < dest.height()))
+			if ((node.x > 0) && (node.x < dest.width())) {
+				if ((node.y - 1 > 0) && (node.y - 1 < dest.height())) {
 					if (dest(node.x, node.y - 1) >= rango_min && dest(node.x, node.y - 1) <= rango_max){
 						//si esta en el rango lo pinto y agrego el nodo nuevo al final de la cola
 						dest(node.x, node.y - 1) = etiqueta;
 						camino.push_back(node.x);
 						camino.push_back(node.y - 1);
 					}
+				}
+			}
 		}
 		return dest;
 	}
@@ -1787,4 +1795,81 @@ public:
 		return result;
 	}
 
+	template <typename T>
+	static inline CImg<T> obtenerLineasPrincipales(CImg<T>& imagen, int cantidadLineas, T umbral = T(128), int toleranciaAngulo = 10, int toleranciaDistancia = 10) {
+		CImg<T>& bordes = detectorBordesSobelDiagonales(imagen, umbral);
+		CImg<T> hough = transformadaHough(bordes);
+		std::vector<Pixel<T>>& maximos = obtenerLosMaximos(bordes, cantidadLineas, true, toleranciaAngulo, toleranciaDistancia);
+		hough.fill(0);
+		for (Pixel<T>& pixel : maximos) {
+			hough(pixel.x, pixel.y) = pixel.value;
+		}
+		CImg<T> ret = transformadaHough(hough, true);
+		return ret;
+	}
+
+	template <class T>
+	static inline CImg<T> morfologiaApertura(CImg<T>& A, CImg<T>& B){
+		CImg<T>& AP = A.get_erode(B);
+		AP.dilate(B);
+		return AP;
+	}
+
+	template <class T>
+	static inline CImg<T> morfologiaCierre(CImg<T>& A, CImg<T>& B) {
+		CImg<T>& AP = A.get_dilate(B);
+		AP.erode(B);
+		return  AP;
+	}
+
+	static inline CImg<bool> nuevoElementoEstructuranteCruz3x3() {
+		static CImg<bool> B(3, 3, 1, 1, 0, 1, 0, 1, 1, 1, 0, 1, 0);
+		return B;
+	}
+
+	static inline CImg<bool> nuevoElementoEstructuranteCruz15x15() {
+		static CImg<bool> B(15, 15, 1, 1,
+			0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,
+			0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,
+			0,0,0,0,0,0,1,1,1,0,0,0,0,0,0,
+			0,0,0,0,0,0,1,1,1,0,0,0,0,0,0,
+			0,0,0,0,0,1,1,1,1,1,0,0,0,0,0,
+			0,0,0,0,1,1,1,1,1,1,1,0,0,0,0,
+			0,0,1,1,1,1,1,1,1,1,1,1,1,0,0,
+			1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
+			0,0,1,1,1,1,1,1,1,1,1,1,1,0,0,
+			0,0,0,0,1,1,1,1,1,1,1,0,0,0,0,
+			0,0,0,0,0,1,1,1,1,1,0,0,0,0,0,
+			0,0,0,0,0,0,1,1,1,0,0,0,0,0,0,
+			0,0,0,0,0,0,1,1,1,0,0,0,0,0,0,
+			0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,
+			0,0,0,0,0,0,0,1,0,0,0,0,0,0,0
+			);
+		return B;
+	}
+
+	static CImg<bool> complemento(CImg<bool> imagen){
+		cimg_forXY(imagen, x, y){
+			imagen(x, y) = !imagen(x, y);
+		}
+		return imagen;
+	}
+
+	template<class T>
+	static inline CImg<T> RGBtoGray(CImg<T>& image) {
+		CImg<T> ret(image.width(), image.height(), 1, 1, 0);
+		cimg_forXY(image, x, y) {
+			T& R = image(x, y, 0, 0);
+			T& G = image(x, y, 0, 1);
+			T& B = image(x, y, 0, 2);
+			T grayValueWeight = (R*0.299) + (G*0.587) + (B*0.114);
+			ret(x, y) = grayValueWeight;
+		}
+		return ret;
+	}
+
+	template<class T>
+	static inline void mostrarHistograma(CImg<T>& imagen) {
+		imagen.get_histogram(256, 0, 255).display_graph();
+	}
 };
