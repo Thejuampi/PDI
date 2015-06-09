@@ -45,6 +45,7 @@ void ejercicio_2_2() {
 	letras1.resize_doubleXY();
 	letras1 = CImgUtils::detectorBordesSobelDiagonales(letras1, 80.0);
 	letras1.resize_halfXY();
+	//letras1.dilate()
 	cimgd& hough1 = CImgUtils::transformadaHough(letras1);
 	std::vector<Pixel<double> >& maximos = CImgUtils::obtenerLosMaximos(hough1, 6, true, 15,15);
 	cimgd& imagenConMaximos = hough1.get_fill(0.0);
@@ -71,9 +72,29 @@ void ejercicio_2_2() {
 #endif
 }
 
+void ejercicio_3() {
+	cimguc bone("img/bone.tif"), regioned;
+	bone.resize(512, 512);
+	CImgDisplay d;
+	d.assign(bone);
+	d.set_title("Original");
+	CImgUtils::showSpectrum(bone.get_FFT());
+	while (!d.is_closed()) {
+		if (d.button() == 1) {
+			int x = d.mouse_x();
+			int y = d.mouse_y();
+			if (x >= 0 && y >= 0) {
+				regioned = CImgUtils::regionGrowing(bone, x, y, 200, 256);
+				regioned.display("region");
+			}
+			d.wait();
+		}
+	}
+}
+
 int _tmain(int argc, _TCHAR* argv[])
 {
-	ejercicio_2_2();
+	ejercicio_3();
 	return 0;
 }
 

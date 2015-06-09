@@ -839,7 +839,6 @@ public:
 			magnitud.save_bmp("magnitud.bmp");
 		}
 		magnitud.display();
-
 	}
 
 	template <class T> inline static void showPhase(CImgList<T> &fft) {
@@ -1695,6 +1694,17 @@ public:
 
 		return img;
 	}
+	template <class T>
+	static inline double calcularAnguloHoughInverso(Pixel<T>& p, CImg<T>& img) {
+		const unsigned& M = img.width(), &N = img.height();
+		int t = p.x;
+
+		double
+			step_theta = M_PI / (M - 1),
+			angulo = t*step_theta - M_PI / 2;
+
+		return angulo;
+	}
 
 	///****************************************
 	/// Transformada Hough directa e inversa
@@ -1747,6 +1757,48 @@ public:
 		return iHough;
 	}
 
+	static inline CImg<double> recortarTransformadaHough(CImg<double>& hough, double min_rho, double max_rho, double min_theta, double max_theta) {
+		const unsigned M = hough.width(),
+			N = hough.height();
+
+		double max_rho2 = sqrt((N - 1)*(N - 1) + (M - 1)* (M - 1)), //maximo valor posible de radio se da en la diagonal pcipal
+			step_rho = 2.*max_rho2 / (N - 1), //paso en eje rho (rho=[-max_rho , max_rho])
+			step_theta = M_PI / (M - 1),     //paso en eje theta (M_PI=pi) (theta=[-90,90])
+			rho, theta;
+
+		cimg_forXY(hough, t, r) {
+			theta = t*step_theta - M_PI / 2;   // mapea t en [0,M-1] a t en [-90,90]
+			rho = r*step_rho - max_rho2;      // mapea r en [0,N-1] a r en [-max_rho,max_rho]
+			if (theta<min_theta || theta > max_theta || rho < min_rho || rho > max_rho) {
+
+				hough(t, r) = 0;               // vuelo a la miercole el valor
+
+			}
+		}
+		return hough;
+	}
+	static inline CImg<double> recortarTransformadaHoughPorAngulo(CImg<double>& hough, double min_theta, double max_theta) {
+		const unsigned M = hough.width(),
+			N = hough.height();
+
+		double max_rho = sqrt((N - 1)*(N - 1) + (M - 1)* (M - 1)), //maximo valor posible de radio se da en la diagonal pcipal
+			step_rho = 2.*max_rho / (N - 1), //paso en eje rho (rho=[-max_rho , max_rho])
+			step_theta = M_PI / (M - 1),     //paso en eje theta (M_PI=pi) (theta=[-90,90])
+			rho, theta;
+
+		cimg_forXY(hough, t, r) {
+			theta = t*step_theta - M_PI / 2;   // mapea t en [0,M-1] a t en [-90,90]
+			rho = r*step_rho - max_rho;      // mapea r en [0,N-1] a r en [-max_rho,max_rho]
+			if (theta<min_theta || theta > max_theta) {
+
+				hough(t, r) = 0;               // vuelo a la miercole el valor
+
+			}
+		}
+		return hough;
+	}
+
+
 	template <typename T>
 	static inline bool evaluarCercaniaHough(Pixel<T>& p0,
 		typename std::vector< Pixel<T> >::iterator& begin,
@@ -1756,7 +1808,7 @@ public:
 		std::vector<Pixel<T>>::iterator it(begin);
 		while (it != end) {
 			Pixel<T>& val = *it++;
-			if (  abs(p0.y-val.y) < r && abs(p0.x-val.x) < t ){
+			if (abs(p0.y - val.y) < r && abs(p0.x - val.x) < t){
 				return false;
 			}
 		}
@@ -1782,7 +1834,7 @@ public:
 			for (int i = 1, j = 1; i < cantidad && j < copia1D.size(); ++j){
 				auto& punto = copia1D[copia1D.size() - 1 - j];
 				//if (abs(punto.x - result[i - 1].x) + abs(punto.y - result[i - 1].y) > 4) {
-				if (evaluarCercaniaHough(punto, result.begin(), result.begin() + i ,r,t) ) {
+				if (evaluarCercaniaHough(punto, result.begin(), result.begin() + i, r, t)) {
 					result[i++] = punto;
 				}
 			}
@@ -1829,21 +1881,21 @@ public:
 
 	static inline CImg<bool> nuevoElementoEstructuranteCruz15x15() {
 		static CImg<bool> B(15, 15, 1, 1,
-			0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,
-			0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,
-			0,0,0,0,0,0,1,1,1,0,0,0,0,0,0,
-			0,0,0,0,0,0,1,1,1,0,0,0,0,0,0,
-			0,0,0,0,0,1,1,1,1,1,0,0,0,0,0,
-			0,0,0,0,1,1,1,1,1,1,1,0,0,0,0,
-			0,0,1,1,1,1,1,1,1,1,1,1,1,0,0,
-			1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
-			0,0,1,1,1,1,1,1,1,1,1,1,1,0,0,
-			0,0,0,0,1,1,1,1,1,1,1,0,0,0,0,
-			0,0,0,0,0,1,1,1,1,1,0,0,0,0,0,
-			0,0,0,0,0,0,1,1,1,0,0,0,0,0,0,
-			0,0,0,0,0,0,1,1,1,0,0,0,0,0,0,
-			0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,
-			0,0,0,0,0,0,0,1,0,0,0,0,0,0,0
+			0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0,
+			0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0,
+			0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0,
+			0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0,
+			0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0,
+			0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0,
+			0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0,
+			1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+			0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0,
+			0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0,
+			0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0,
+			0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0,
+			0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0,
+			0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0,
+			0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0
 			);
 		return B;
 	}

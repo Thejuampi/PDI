@@ -190,10 +190,9 @@ void ejercicio_n2() {
 	}
 
 	estrellas.display();
-
-
-
 }
+
+
 
 int _tmain(int argc, _TCHAR* argv[])
 {
